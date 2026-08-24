@@ -2,7 +2,7 @@
 name: hotel-hunting
 version: 3.0.0
 description: Use when vetting hotels. Finds truth behind ratings.
-author: Sliday
+author: "Stas Kulesh from Sliday"
 license: MIT
 metadata:
   hermes:
