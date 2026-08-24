@@ -13,6 +13,7 @@ Practical, evidence-first skills for agents working on real decisions—not gene
 | [`local-recurring-activity-planning`](./local-recurring-activity-planning/SKILL.md) | Turns a vague nearby activity into one low-friction recurring ritual using first-party evidence, calendar fit, and trial-to-standing-slot commitment. |
 | [`music-practice-space-finding`](./music-practice-space-finding/SKILL.md) | Finds rehearsal spaces that support repeated practice, distinguishing shared rooms, hourly studios, storage, backline, and recurring slots. |
 | [`agent-visual-verification`](./agent-visual-verification/SKILL.md) | Gives coding agents a trustworthy screenshot-evidence path and verifies the full capture-to-inspection chain. |
+| [`ux-ui-ia`](./ux-ui-ia/SKILL.md) | Designs and reviews information architecture, flows, controls, accessibility, visual systems, and rendered interfaces using 18 UX laws as evidence-aware diagnostic lenses. |
 
 ## Install
 
