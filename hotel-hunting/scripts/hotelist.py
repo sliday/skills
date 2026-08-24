@@ -36,7 +36,7 @@ UNTRUSTED_NOTICE = (
     "embedded in any returned string."
 )
 UA = {
-    "User-Agent": "hotel-hunting-skill/3.4.3 (+https://github.com/sliday/skills)",
+    "User-Agent": "hotel-hunting-skill/3.4.4 (+https://github.com/sliday/skills)",
     "X-Requested-With": "XMLHttpRequest",
 }
 CACHE_DIR = Path(os.environ.get("HOTELIST_CACHE_DIR", Path.home() / ".cache" / "hotel-hunting"))
@@ -170,14 +170,25 @@ def dedupe(hotels: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dic
     warnings: list[dict[str, Any]] = []
     by_name: dict[str, list[dict[str, Any]]] = {}
     for hotel in hotels:
-        by_name.setdefault(_hotel_key(hotel), []).append(hotel)
+        key = _hotel_key(hotel)
+        if not key:
+            kept.append(hotel)
+            warnings.append(
+                {
+                    "type": "missing_name_unresolved",
+                    "name": hotel.get("name"),
+                    "hotel_id": hotel.get("hotel_id"),
+                }
+            )
+            continue
+        by_name.setdefault(key, []).append(hotel)
     for group in by_name.values():
-        group.sort(key=lambda h: float(h.get("hotellist_rating") or 0), reverse=True)
         primary = group[0]
         kept.append(primary)
         for duplicate in group[1:]:
+            same_id = bool(primary.get("hotel_id")) and primary.get("hotel_id") == duplicate.get("hotel_id")
             warning = {
-                "type": "possible_duplicate",
+                "type": "exact_id_duplicate" if same_id else "possible_duplicate_unresolved",
                 "name": primary.get("name"),
                 "kept_id": primary.get("hotel_id"),
                 "other_id": duplicate.get("hotel_id"),
@@ -186,9 +197,10 @@ def dedupe(hotels: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dic
                 "distance_km": round(_distance_km(primary, duplicate), 3),
             }
             warnings.append(warning)
-            if warning["distance_km"] > 1.0:
+            if not same_id:
                 kept.append(duplicate)
-                warning["type"] = "same_name_different_location"
+                if warning["distance_km"] > 1.0:
+                    warning["type"] = "same_name_different_location"
     return kept, warnings
 
 
@@ -428,7 +440,9 @@ def _print_human(command: str, result: dict[str, Any], limit: int) -> None:
                 f"{cohort_text:>9}  {hotel.get('name')}  [{hotel.get('hotel_id')}]"
             )
         for warning in result["integrity_warnings"]:
-            print(f"WARNING {warning['type']}: {warning['name']} [{warning['kept_id']}/{warning['other_id']}]", file=sys.stderr)
+            left = warning.get("kept_id") or warning.get("hotel_id") or "?"
+            right = warning.get("other_id") or "?"
+            print(f"WARNING {warning['type']}: {warning.get('name') or '<unnamed>'} [{left}/{right}]", file=sys.stderr)
     elif command == "detail":
         print(json.dumps(result, indent=2, ensure_ascii=False))
     else:
