@@ -1,7 +1,7 @@
 ---
 name: ux-ui-ia
-version: 1.0.0
-description: Use when designing or reviewing interfaces.
+version: 1.1.0
+description: Use when designing or reviewing interfaces, setting up a spacing scale or design tokens, or restructuring UI into a component system.
 author: Sliday
 license: MIT
 metadata:
@@ -17,6 +17,9 @@ triggers:
   - "apply UX laws"
   - "design a form, dashboard, settings page, or onboarding"
   - "make this interface easier to use"
+  - "set up a spacing scale or 8px grid"
+  - "create design tokens or a component system"
+  - "normalize inconsistent spacing, radii, or type sizes"
 mutating: false
 ---
 
@@ -149,16 +152,49 @@ Use the classic response-time bands as design heuristics, not service-level guar
 
 ### 5. Define the interface system
 
-Create a constrained system rather than styling each screen independently:
+Create a constrained system rather than styling each screen independently. Two defaults do most of the work: an **8px spatial grid** and **atomic composition**. If the codebase already has an equivalent system, extend it; never run a second system beside it.
 
-- semantic typography roles and a small scale;
-- semantic color tokens for surface, text, action, status, and focus;
-- spacing scale and layout grid;
-- component variants and action hierarchy;
-- icon vocabulary;
-- radius, border, elevation, and motion rules;
-- content and error-message voice;
-- keyboard, pointer, touch, focus, hover, selected, disabled, loading, and destructive states.
+#### 5a. Spacing and sizing: the 8px grid
+
+Every padding, margin, gap, and fixed box dimension comes from one scale on an 8px base, with 4px as the half-step for tight pairs (icon-to-label, checkbox-to-text):
+
+```text
+4  8  12  16  24  32  48  64  96
+```
+
+Define the scale as tokens (`--space-1: 8px` … `--space-12: 96px`, or the framework equivalent) and spend values from tokens, not literals.
+
+Rules that survive real projects:
+
+- **The grid governs boxes, not glyphs.** Apply it to padding, margins, gaps, control heights, and icon sizes. Line-height obeys readability, not the grid: 25.6px or 28px line-height is correct where the grid would force 24px or 32px.
+- **The spacing ladder must never invert.** Spacing encodes grouping (Law of Proximity): label-to-control 4–8, siblings inside a group 8–16, between groups 24–32, between page sections 48+. A card whose internal padding (16) exceeds the gap to its neighbor (8) reads as one merged blob.
+- **Size controls on the grid.** Control heights 32/40/48; icons 16/20/24; pointer targets at least 24×24 (WCAG 2.2 floor), 44×44 for primary touch actions.
+- **Exceptions are declared, not leaked.** A living system tolerates a few off-scale values (a 12px chip padding, an 80px hero offset) when they are named tokens with a stated reason. Silent literals like 9px, 13px, 17px are defects.
+- **Audit mechanically.** Grep the styles for `px` values not divisible by 4; that list is the violation report. In rendered review, off-grid values appear as almost-aligned edges: measure, do not eyeball.
+
+#### 5b. Composition: the atomic system
+
+Build in strict layers; each layer consumes only the layer below:
+
+```text
+tokens → atoms → molecules → organisms → templates → screens
+```
+
+- **Tokens** in two tiers: primitive (`--gray-700`, `--space-2`) and semantic (`--color-text`, `--btn-bg`). Components reference semantic tokens only, so theming and dark mode become token swaps, not rewrites.
+- **Atoms:** button, input, label, icon, badge, checkbox. An atom never sets its own external margin; the parent owns spacing via gap.
+- **Molecules:** form field (label + control + help + error), search bar, setting row, menu item.
+- **Organisms:** form, card list, header, settings section.
+- **Templates and screens** compose organisms; a new screen that demands a new atom needs a stated reason.
+
+Rules that survive real projects:
+
+- **Tokens are step zero.** Retrofitting tokens onto already-styled screens is the single largest time sink in system work; hardcoded colors and spacing metastasize. Cut tokens before styling the first screen.
+- **Rule of three.** Second appearance of a pattern: note it. Third: extract the component. Two "setting rows" with different backgrounds, radii, and padding are one molecule with a bug, not two designs.
+- **Variants, not clones.** Same function, one component, differentiated by modifier (`primary/secondary/ghost/destructive`, `sm/md/lg`), never by copy-pasted styles that drift apart.
+- **One radius and one elevation per component level.** Pick a small set (4/8/12/full) and map each component class to one value. Mixed radii inside one card stack is the fastest tell of an unsystematic UI.
+- **Type scale is semantic and small.** Roles (display, heading, subheading, body, caption) mapped to a modular set such as 12/14/16/20/24/32; line-height tightens as size grows; body lines stay within 40–80 characters.
+
+Fix the remaining system rules explicitly: semantic color tokens for surface, text, action, status, and focus, with contrast floors of 4.5:1 for body text and 3:1 for large text and essential UI graphics; icon vocabulary; border, elevation, and motion rules; content and error-message voice; keyboard, pointer, touch, focus, hover, selected, disabled, loading, and destructive states.
 
 One-off visual values require a reason. Consistency is not sameness: component variants should communicate different semantics while remaining part of one system.
 
@@ -242,7 +278,7 @@ Lead with blockers and majors. Do not bury a broken flow under spacing comments.
 3. **IA hierarchy** — primary, secondary, tertiary, metadata
 4. **Flow and state model**
 5. **Relevant UX laws** — problem → law → design move → trade-off
-6. **System rules** — type, color, spacing, components, motion, copy
+6. **System rules** — spacing grid, tokens, atomic component inventory, type, color, motion, copy
 7. **Screen/component decisions**
 8. **Accessibility and resilience requirements**
 9. **Rendered verification evidence**
@@ -258,6 +294,9 @@ For implementation tasks, make the changes and cite concrete files/components. D
 - [ ] One clear primary action exists per decision surface.
 - [ ] Needed context is visible; rare complexity is progressively disclosed.
 - [ ] Relevant UX laws were selected by problem, with misuse checks.
+- [ ] Every padding, margin, and gap sits on the spacing scale; exceptions are named tokens with reasons.
+- [ ] Repeated patterns are extracted components with variants; no near-duplicate clones.
+- [ ] Components consume semantic tokens; no hardcoded color or spacing literals.
 - [ ] Loading, empty, partial, success, error, interruption, and recovery states are covered.
 - [ ] Controls have honest hierarchy, labels, target size, focus, and states.
 - [ ] Forms preserve work and explain recovery.
@@ -275,6 +314,9 @@ For implementation tasks, make the changes and cite concrete files/components. D
 - Hiding complexity that users need to understand consequences.
 - Using progressive disclosure to conceal price, risk, permissions, or destructive effects.
 - Adding cards, borders, icons, motion, gradients, or color without informational purpose.
+- Off-scale spacing literals (9px, 13px, 17px) instead of scale tokens.
+- Cloned near-identical components that drift in radius, padding, or background instead of one component with variants.
+- Forcing line-height and letter-spacing onto the 8px grid at the cost of readability.
 - Multiple competing primary actions.
 - Placeholder-only labels, icon-only meaning, or color-only status.
 - Custom controls that lose native keyboard and accessibility behavior.
