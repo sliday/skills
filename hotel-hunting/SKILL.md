@@ -319,10 +319,9 @@ Places photos when API access exists; otherwise try public Google Maps, booking
 platform guest galleries, traveler uploads, and room tours. A blocked or empty
 source means `photo coverage unavailable`, not `no visual problem`.
 
-Assess visible condition, room geometry, light/privacy, design coherence,
-wide-angle distortion, renovated-versus-old inventory, and whether advertised
-amenities look usable. Audit experience promises such as `boutique`, `design`,
-`luxury`, `historic`, and `spa` against the images instead of accepting labels.
+Assess visible condition, geometry, light/privacy, design coherence, distortion,
+old-versus-renovated inventory, and amenity usability. Audit `boutique`, `design`,
+`luxury`, `historic`, and `spa` promises instead of accepting labels.
 
 AI vision can assess visible condition, ambiance, and amenity presence. It
 cannot prove quiet, smell, mattress quality, water pressure, temperature
