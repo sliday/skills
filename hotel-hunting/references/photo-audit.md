@@ -10,9 +10,25 @@ Attempt sources in this order, recording failures rather than silently shrinking
 2. Official hotel gallery for the exact room category being considered.
 3. Google Places API (New) when a configured key and billing are available.
 4. Public Google Maps guest-photo gallery when browser access and consent state permit it.
-5. Booking-platform guest photos, Tripadvisor traveler photos, independent room tours, and dated trip reports.
+5. DuckDuckGo Images as a discovery index for original Booking, Tripadvisor, regional-tourism, Matterport, and hotel-gallery images.
+6. Booking-platform guest photos, Tripadvisor traveler photos, independent room tours, and dated trip reports.
 
 Do not interpret a consent wall, WAF, login wall, missing API key, empty gallery, or expired photo resource as evidence that no visual problem exists.
+
+## DuckDuckGo image discovery
+
+Query the exact quoted property name plus city and a discriminating term such as `room`, `bathroom`, `guest photo`, or the room category. DuckDuckGo can reveal direct full-resolution image URLs and source pages that ordinary web search misses, including Booking, Tripadvisor traveler uploads, local tourism sites, and Matterport tours.
+
+Treat DuckDuckGo only as an index, never as provenance. For every selected result:
+
+1. verify the source page, hotel name, city/address, and visible property identity;
+2. reject same-name hotels in other cities or countries;
+3. classify the original source as official, traveler, booking platform, tourism publisher, or unknown;
+4. deduplicate syndicated images and alternate crops;
+5. prefer the original image URL over a DuckDuckGo/Bing thumbnail;
+6. preserve the original page URL and its attribution requirements.
+
+Browser image results may render blank, and unofficial `vqd`/`i.js` or `ddgs` clients can be rate-limited or blocked. Failure is a source-availability warning, not evidence about the hotel.
 
 ## Google Places photos
 
