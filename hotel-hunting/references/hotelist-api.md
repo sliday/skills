@@ -54,6 +54,12 @@ Returns an HTML fragment. Observed fields include:
 - source-agreement/consensus score;
 - normalized per-source ratings and freshness;
 - minimum price and distance to center;
+- `rating_context` on every search result: rank, cohort size, and top percentage
+  inside the requested map/filter cohort. This is relative context, not a new
+  rating.
+- `normalized_source_diagnostics` on detail results: source count, minimum,
+  maximum, spread, and a plain-language disagreement warning. The CLI never
+  averages these into another score.
 - pros, cons, amenities, and optional video tour.
 
 A parsed Hotelist statement remains **Hotelist-derived** unless the underlying

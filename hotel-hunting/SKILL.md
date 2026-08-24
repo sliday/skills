@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.1.0
+version: 3.2.0
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -292,40 +292,79 @@ AI vision can assess visible condition, ambiance, and amenity presence. It
 cannot prove quiet, smell, mattress quality, water pressure, temperature
 control, Wi-Fi stability, or staff behavior.
 
-## Phase 6 — Produce a Hotel Truth Card
+## Phase 6 — Translate ratings into a stay decision
+
+Do **not** create a second “truth rating.” Hotelist already provides the
+normalized rating. Another 0–10 number would hide judgment behind fresh decimal
+precision and imply access to evidence the skill may not have.
+
+Instead, translate the rating along four separate axes:
+
+1. **Base signal —** Hotelist Score plus AI photo/review components, unchanged.
+2. **Cohort position —** rank and top percentage inside the explicitly named
+   destination/filter cohort. Never say “top 5%” without cohort size and scope.
+3. **Reliability —** source count, normalized-source range/spread, source
+   agreement, independence, recency, room-category match, and integrity issues.
+4. **Traveler exposure —** whether credible complaints touch this traveler’s
+   dealbreaker, room, floor, season, or hard gates.
+
+### Rating verdict labels
+
+Use one label, with the reason beside it:
+
+- **strong and reliable** — strong relative Hotelist position, materially
+  independent sources broadly agree, evidence is current enough for the claim,
+  and no recurring traveler-relevant dealbreaker survives checking;
+- **strong but conditional** — the base rating is strong, but source
+  disagreement, room/season variance, or one relevant recurring issue requires
+  a specific mitigation;
+- **uncertain** — evidence is sparse, stale, opaque, duplicated, syndicated, or
+  mismatched to the room/season; do not convert uncertainty into a lower score;
+- **avoid for this trip** — a credible recurring dealbreaker or failed hard gate
+  applies to this traveler, regardless of the headline rating.
+
+These are decision labels, not replacements for Hotelist’s score. A beautiful
+9.2 can still be “avoid for this trip” when the recurring problem is exactly the
+traveler’s dealbreaker. Conversely, one isolated complaint does not downgrade a
+well-supported rating.
+
+### Rating Decision Card
 
 Create one card per finalist:
 
 ```text
-Truth rating: <0–10 or insufficient evidence> — <confidence>
+Rating verdict: <strong and reliable | strong but conditional | uncertain | avoid for this trip>
+Why: <one sentence naming the decisive evidence>
 
-Hotelist:
-- Overall: <score>
+Hotelist signal:
+- Overall: <score, unchanged>
+- Cohort position: <rank>/<N>, top <X>% of <named map/filter cohort>>
 - AI photos: <score>
 - AI traveler evidence: <score>
-- Source agreement: <score>
+- Hotelist source agreement: <score>
 
-Normalized platforms:
+Normalized sources:
 - <source>: <normalized score, freshness if known>
-- Spread: <range/disagreement>
+- Range/spread: <min–max; spread; plain-language interpretation>
+- Independence caveat: <none known | possible syndication | unknown>
 
-Evidence:
-- Independent traveler sources inspected: <count>
-- Recent guest-media sets inspected: <count>
-- Newest decisive evidence: <date>
-- Recurring positives: <specific patterns>
-- Recurring negatives: <specific patterns>
+Reliability: <high | medium | low>
+- Supports confidence: <independence, recency, volume, room match>
+- Limits confidence: <missing/stale/opaque/conflicting evidence>
+
+Traveler exposure:
+- Dealbreaker: <clear | conditional | triggered>
+- Recurring relevant issue: <issue, scope, recency, corroboration>
+- Mitigation: <room/floor/season request, or none credible>
 
 Integrity warnings:
-- <duplicates, mismatches, opaque provenance, syndicated sources, stale data>
-
-Verdict: <what is probably true and for which room/season/traveler>
+- <duplicates, identity mismatch, source opacity, stale data>
 ```
 
-The final truth rating is a reasoned synthesis, not a fake decimal. Prefer a
-range or “insufficient evidence” when uncertainty is material. Confidence must
-reflect source independence, recency, volume, room-category match, and data
-integrity—not merely agreement between copied ratings.
+Confidence describes the evidence behind the rating, not hotel quality. Keep
+“rating verdict,” “reliability,” and “traveler fit” separate so a user can see
+whether a recommendation changed because the hotel is weak, the evidence is
+weak, or the hotel simply conflicts with this trip.
 
 ## Phase 7 — Exact-stay verification, only when relevant
 
@@ -346,21 +385,32 @@ A calendar day, “from” price, search card, or scarcity banner is not confirm
 inventory. Continue to the room table or checkout summary. Never book or submit
 payment without explicit authorization.
 
-## Decision surface
+## Decision rule — gates before trade-offs
 
-Hard gates first. Then adapt the weights to the trip:
+Do not combine rating quality, evidence reliability, traveler utility, and price
+into a weighted average. They are different kinds of information, and a high
+value or pretty room must not numerically cancel a sleep-risk dealbreaker.
 
-| Dimension | Default |
-|---|---:|
-| Exact fit and operational certainty | 25% |
-| Recurring complaint / sleep risk | 20% |
-| Location and access friction | 15% |
-| Room and visual quality | 15% |
-| Independent traveler evidence | 10% |
-| Value at exact total price | 10% |
-| Service and breakfast | 5% |
+Decide in this order:
 
-Do not let many weak positives average away one credible dealbreaker.
+1. **Hard gates:** reject failed occupancy, bed, access, AC, parking,
+   accessibility, arrival, or other non-negotiables.
+2. **Critical traveler risk:** reject a credible recurring issue that directly
+   triggers the traveler’s dealbreaker and lacks a believable mitigation.
+3. **Evidence readiness:** quarantine `uncertain` candidates unless every more
+   reliable option is materially worse and the uncertainty can be resolved.
+4. **Rating strength:** among viable candidates, prefer the stronger Hotelist
+   position and source agreement; preserve any disagreement rather than
+   averaging it away.
+5. **Stay fit:** compare location friction, room/visual quality, service,
+   breakfast, and traveler-specific needs.
+6. **Exact value:** use the verified all-in price as the final trade-off, not a
+   teaser price.
+
+When factors conflict, name the trade-off in words: “Hotel A has the stronger
+and more reliable rating; Hotel B is €120 cheaper and better located but has a
+conditional noise risk.” The winner must follow from that explicit trade-off,
+not from hidden arithmetic.
 
 ## Output format
 
@@ -368,7 +418,8 @@ Lead with the decision, then the evidence:
 
 ```text
 Best move: <hotel> — <one-line reason>
-Truth rating: <score/range> — <confidence>
+Rating verdict: <label> — <reliability>
+Hotelist: <score unchanged> · <rank>/<cohort N> · source spread <value>
 Exact stay: <room, beds, total, cancellation, verification status>
 Why it wins: <three specific strengths with provenance>
 Watch-out: <strongest credible downside and mitigation/room request>
@@ -384,7 +435,7 @@ Rejected after checking:
 Still unverified: <single fact that could change the choice>
 ```
 
-Include the Hotel Truth Cards beneath this summary. At most three finalists.
+Include the Rating Decision Cards beneath this summary. At most three finalists.
 
 ## Verification checklist
 

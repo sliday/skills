@@ -192,6 +192,54 @@ def dedupe(hotels: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dic
     return kept, warnings
 
 
+def add_cohort_context(hotels: list[dict[str, Any]]) -> None:
+    """Annotate hotels with relative position without changing their score."""
+    scores = [float(h.get("hotellist_rating") or 0) for h in hotels]
+    cohort_size = len(scores)
+    for hotel, score in zip(hotels, scores):
+        rank = 1 + sum(other > score for other in scores)
+        hotel["rating_context"] = {
+            "cohort": "Hotelist results inside the requested map area and active filters, after deduplication",
+            "cohort_size": cohort_size,
+            "rank": rank,
+            "top_percent": round(100 * rank / cohort_size, 1) if cohort_size else None,
+            "interpretation": "Relative position only; not a new or adjusted rating.",
+        }
+
+
+def source_disagreement(sources: dict[str, str]) -> dict[str, Any]:
+    """Describe normalized-source spread without synthesizing another score."""
+    values = [float(value) for value in sources.values()]
+    if not values:
+        return {
+            "source_count": 0,
+            "minimum": None,
+            "maximum": None,
+            "lowest_sources": [],
+            "highest_sources": [],
+            "spread": None,
+            "interpretation": "No normalized source scores were parsed.",
+        }
+    spread = max(values) - min(values)
+    if len(values) < 2:
+        interpretation = "Only one normalized source was parsed; disagreement cannot be assessed."
+    elif spread <= 0.5:
+        interpretation = "Normalized sources are tightly aligned."
+    elif spread <= 1.0:
+        interpretation = "Normalized sources show meaningful disagreement; inspect the lower source."
+    else:
+        interpretation = "Normalized sources disagree strongly; do not treat the overall score as settled."
+    return {
+        "source_count": len(values),
+        "minimum": min(values),
+        "maximum": max(values),
+        "lowest_sources": [name for name, value in sources.items() if float(value) == min(values)],
+        "highest_sources": [name for name, value in sources.items() if float(value) == max(values)],
+        "spread": round(spread, 2),
+        "interpretation": interpretation,
+    }
+
+
 def search(
     *,
     place: str | None,
@@ -242,6 +290,7 @@ def search(
         raise HotelistError("Hotelist search response no longer contains hotels[]")
     hotels, warnings = dedupe(payload["hotels"])
     hotels.sort(key=lambda h: float(h.get("hotellist_rating") or 0), reverse=True)
+    add_cohort_context(hotels)
     return {
         "security_boundary": UNTRUSTED_NOTICE,
         "resolved_place": resolved,
@@ -287,6 +336,7 @@ def detail(hotel_id: str, *, max_age: int) -> dict[str, Any]:
         "ai_review_score": score("AI rating of reviews"),
         "source_agreement": score("Consensus about rating"),
         "normalized_sources": sources,
+        "normalized_source_diagnostics": source_disagreement(sources),
         "minimum_observed_price_usd": price_match.group(1) if price_match else None,
         "distance_to_center": (re.search(r"Distance to center\s*([0-9.]+\s*km)", text) or [None, None])[1],
         "hotelist_derived_claims": [f.strip() for f in fragments if not any(k in f for k in skip)][:30],
@@ -321,7 +371,12 @@ def _print_human(command: str, result: dict[str, Any], limit: int) -> None:
         for hotel in result["hotels"]:
             price = hotel.get("price")
             price_text = f"${round(float(price))}" if price not in (None, "None") else "n/a"
-            print(f"{float(hotel.get('hotellist_rating') or 0):>5.2f}  {price_text:>6}  {hotel.get('name')}  [{hotel.get('hotel_id')}]")
+            context = hotel.get("rating_context") or {}
+            cohort_text = f"#{context.get('rank')}/{context.get('cohort_size')}" if context else "cohort n/a"
+            print(
+                f"{float(hotel.get('hotellist_rating') or 0):>5.2f}  {price_text:>6}  "
+                f"{cohort_text:>9}  {hotel.get('name')}  [{hotel.get('hotel_id')}]"
+            )
         for warning in result["integrity_warnings"]:
             print(f"WARNING {warning['type']}: {warning['name']} [{warning['kept_id']}/{warning['other_id']}]", file=sys.stderr)
     elif command == "detail":
