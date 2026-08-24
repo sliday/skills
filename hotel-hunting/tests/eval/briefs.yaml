@@ -1,0 +1,19 @@
+# Anonymized brief templates. No hotel names (names skew outputs).
+briefs:
+  - id: sleep-critical-city
+    task: >
+      Find the best hotel in <CITY> for <DATES> (3 nights, 2 adults, 1 room),
+      budget <= <BUDGET>/night including taxes. Sleep quality is critical:
+      light sleeper, sensitive to heat and morning light.
+    rare_gates: [guest-controlled AC, blackout]
+  - id: ev-road-trip
+    task: >
+      Couple traveling by EV needs a hotel in <CITY> with reliable overnight
+      charging, good breakfast, dependable service; price secondary.
+    rare_gates: [overnight EV charging]
+  - id: boutique-truth-audit
+    task: >
+      Is <HOTEL> actually good? Boutique-feeling weekend for a couple;
+      dealbreaker is a stay that feels below its billing.
+    rare_gates: []
+    note: anchor-only brief; <HOTEL> comes from the private anchors file.

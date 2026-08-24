@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.4.4
+version: 3.5.0
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -189,6 +189,14 @@ If Hotelist lacks a normalized score:
 3. keep platforms separate when the sample is too small;
 4. label any manual comparison as approximate.
 
+### Cite the acquisition, or drop the number
+
+Every Hotelist figure in the output carries its acquisition command (for
+example `scripts/hotelist.py detail <HOTEL_ID>`) so a reviewer can replay and
+diff it. If neither the script nor the MCP returned data this session, no
+Hotelist score, rank, cohort size, or id may appear; write `Hotelist:
+unreachable this session` once instead.
+
 ## Phase 3 — Resolve hotel identity and data integrity
 
 Before ranking, detect duplicate or mismatched property records using:
@@ -221,6 +229,26 @@ system:
 
 Record source date and likely incentive. Editorial or affiliate inclusion is a
 lead, not proof.
+
+### Gate-first discovery lane
+
+When a hard gate is rare in the local market (guest-controlled AC in northern
+or Baltic Europe, EV charging, true blackout, step-free access), rating-ranked
+discovery hides exactly the candidates that satisfy it, and rating pros/cons
+summaries frequently omit gate amenities entirely. Run a second lane: platform
+amenity filters plus direct queries (`"<city> hotels with air conditioning"`
+and the local-language equivalent) plus an official-site amenity check for
+mid-rank candidates. Gate-lane candidates enter the working set regardless of
+aggregate rating and may be rejected only after their gate traits are checked
+and reported, never by rating rank alone. When the returned cohort is small
+(under ~30), sweep every in-budget cohort member from the search output you
+already hold — name, pros/cons, and known chain amenities give a provisional
+gate verdict at zero extra lookups (a property named "AC Hotel" or a
+climate-forward chain is a lead even when its pros omit AC). Spend per-hotel
+lookups only on members whose provisional verdict is promising or unknown and
+whose price fits. Rating rank must not decide which members get swept. The output's `Gate-lane` line lists the queries run and
+every candidate it surfaced with its gate verdict; a report without that line
+did not run the lane.
 
 Apply hard gates before scoring:
 
@@ -272,6 +300,11 @@ Classify each issue:
 
 Repeated specific complaints across independent ecosystems outweigh generic
 praise. One dramatic anecdote is not consensus.
+
+Run the same dealbreaker query template against every finalist, not only the
+intended winner; asymmetric negative research flips winners. The output must
+include a per-finalist negative-coverage line (queries run, hit or no-hit). A
+finalist without a complete row may not appear in the recommendation.
 
 ### 5.2 Traveler-source provenance
 
@@ -423,6 +456,14 @@ A calendar day, “from” price, search card, or scarcity banner is not confirm
 inventory. Continue to the room table or checkout summary. Never book or submit
 payment without explicit authorization.
 
+Classify every price as **decision-grade** (dated, occupancy-exact,
+tax-inclusive total with cancellation terms captured) or **indicative**
+(teaser, cached, undated, or minimum-observed). Indicative prices permit no
+budget arithmetic and no headroom claims; the `Exact stay` line must then say
+UNVERIFIED with the reason. In blocked or read-only runtimes, capture the
+official flexible-rate range and its retrieval date instead of skipping
+silently.
+
 ## Decision rule — gates before trade-offs
 
 Do not combine rating quality, evidence reliability, traveler utility, and price
@@ -450,6 +491,10 @@ and more reliable rating; Hotel B is €120 cheaper and better located but has a
 conditional noise risk.” The winner must follow from that explicit trade-off,
 not from hidden arithmetic.
 
+Stop researching when three finalists each have gate verdicts, their three
+strongest negatives, and provenance labels; further lookups past that point
+rarely change the decision and burn the budget.
+
 ## Output format
 
 Lead with the decision, then the evidence:
@@ -470,6 +515,8 @@ Wildcard: <only if genuinely distinct>
 Rejected after checking:
 - <hotel>: <failed gate or recurring dealbreaker>
 
+Gate-lane: <queries/filters run → candidates surfaced with gate verdicts; PLUS the cohort sweep: every in-budget cohort member with a provisional gate verdict or "unchecked: <reason>"; or "not applicable: no market-rare gate">
+Negative coverage: <per finalist: dealbreaker queries run → hits/none>
 Still unverified: <single fact that could change the choice>
 ```
 
@@ -492,6 +539,9 @@ Include the Rating Decision Cards beneath this summary. At most three finalists.
       positives reported when testing against firsthand experience
 - [ ] Recent guest media for the actual room category inspected
 - [ ] Visual promise audit separates official, guest, and unknown-room media
+- [ ] Gate-first discovery lane run when a hard gate is market-rare
+- [ ] Every Hotelist figure carries a replayable acquisition command
+- [ ] Negative-coverage matrix complete for every finalist
 - [ ] Hard gates applied before ratings
 - [ ] Exact stay and all-in price verified when relevant
 - [ ] Winner, fallback, rejections, confidence, and uncertainty explicit
