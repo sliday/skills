@@ -60,8 +60,19 @@ class HotelistTests(unittest.TestCase):
         self.assertEqual(rows[0]["rating_context"]["rank"], 1)
         self.assertEqual(rows[1]["rating_context"]["rank"], 2)
         self.assertEqual(rows[2]["rating_context"]["rank"], 2)
-        self.assertEqual(rows[3]["rating_context"]["top_percent"], 100.0)
+        self.assertIsNone(rows[3]["rating_context"]["top_percent"])
+        self.assertIn("Small returned cohort", rows[0]["rating_context"]["interpretation"])
+        self.assertIn("not proof of complete", rows[0]["rating_context"]["coverage_caution"])
         self.assertEqual(rows[0]["hotellist_rating"], 9.2)
+
+    def test_cohort_percentile_requires_adequate_sample(self):
+        rows = [
+            {"name": str(i), "hotellist_rating": 10 - i / 100}
+            for i in range(100)
+        ]
+        hotelist.add_cohort_context(rows)
+        self.assertEqual(rows[0]["rating_context"]["rank"], 1)
+        self.assertEqual(rows[0]["rating_context"]["top_percent"], 1.0)
 
     def test_source_disagreement_reports_spread_not_new_score(self):
         result = hotelist.source_disagreement(

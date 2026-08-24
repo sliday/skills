@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.2.0
+version: 3.2.1
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -301,8 +301,10 @@ precision and imply access to evidence the skill may not have.
 Instead, translate the rating along four separate axes:
 
 1. **Base signal —** Hotelist Score plus AI photo/review components, unchanged.
-2. **Cohort position —** rank and top percentage inside the explicitly named
-   destination/filter cohort. Never say “top 5%” without cohort size and scope.
+2. **Cohort position —** rank inside the explicitly named set returned by
+   Hotelist for the destination and active filters. This is not proof of full
+   local-market coverage. Show top percentage only with at least 30 returned
+   properties; for smaller cohorts report `<rank>/<N>` without a percentile.
 3. **Reliability —** source count, normalized-source range/spread, source
    agreement, independence, recency, room-category match, and integrity issues.
 4. **Traveler exposure —** whether credible complaints touch this traveler’s
@@ -338,7 +340,9 @@ Why: <one sentence naming the decisive evidence>
 
 Hotelist signal:
 - Overall: <score, unchanged>
-- Cohort position: <rank>/<N>, top <X>% of <named map/filter cohort>>
+- Cohort position: <rank>/<N> of properties returned by Hotelist for <named map/filter cohort>>
+- Percentile: <top X% only when N >= 30; otherwise omitted>
+- Coverage caveat: <Hotelist returned cohort is not complete local inventory>
 - AI photos: <score>
 - AI traveler evidence: <score>
 - Hotelist source agreement: <score>

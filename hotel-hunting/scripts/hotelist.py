@@ -198,12 +198,18 @@ def add_cohort_context(hotels: list[dict[str, Any]]) -> None:
     cohort_size = len(scores)
     for hotel, score in zip(hotels, scores):
         rank = 1 + sum(other > score for other in scores)
+        top_percent = round(100 * rank / cohort_size, 1) if cohort_size >= 30 else None
         hotel["rating_context"] = {
-            "cohort": "Hotelist results inside the requested map area and active filters, after deduplication",
+            "cohort": "Properties returned by Hotelist inside the requested map area and active filters, after deduplication",
             "cohort_size": cohort_size,
             "rank": rank,
-            "top_percent": round(100 * rank / cohort_size, 1) if cohort_size else None,
-            "interpretation": "Relative position only; not a new or adjusted rating.",
+            "top_percent": top_percent,
+            "interpretation": (
+                "Small returned cohort; report rank and cohort size, not a percentile."
+                if cohort_size < 30
+                else "Relative position only; not a new or adjusted rating."
+            ),
+            "coverage_caution": "This is Hotelist's returned cohort, not proof of complete local hotel coverage.",
         }
 
 
