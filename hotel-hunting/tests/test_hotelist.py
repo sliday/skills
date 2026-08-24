@@ -49,6 +49,37 @@ class HotelistTests(unittest.TestCase):
         self.assertEqual(len(kept), 2)
         self.assertEqual(warnings[0]["type"], "same_name_different_location")
 
+    def test_cohort_context_preserves_scores_and_handles_ties(self):
+        rows = [
+            {"name": "A", "hotellist_rating": 9.2},
+            {"name": "B", "hotellist_rating": 8.8},
+            {"name": "C", "hotellist_rating": 8.8},
+            {"name": "D", "hotellist_rating": 7.0},
+        ]
+        hotelist.add_cohort_context(rows)
+        self.assertEqual(rows[0]["rating_context"]["rank"], 1)
+        self.assertEqual(rows[1]["rating_context"]["rank"], 2)
+        self.assertEqual(rows[2]["rating_context"]["rank"], 2)
+        self.assertEqual(rows[3]["rating_context"]["top_percent"], 100.0)
+        self.assertEqual(rows[0]["hotellist_rating"], 9.2)
+
+    def test_source_disagreement_reports_spread_not_new_score(self):
+        result = hotelist.source_disagreement(
+            {"Google Maps": "9.3", "Booking.com": "8.5", "Expedia": "10"}
+        )
+        self.assertEqual(result["source_count"], 3)
+        self.assertEqual(result["spread"], 1.5)
+        self.assertEqual(result["lowest_sources"], ["Booking.com"])
+        self.assertEqual(result["highest_sources"], ["Expedia"])
+        self.assertIn("disagree strongly", result["interpretation"])
+        self.assertNotIn("score", result)
+
+    def test_source_disagreement_needs_multiple_sources(self):
+        result = hotelist.source_disagreement({"Booking.com": "8.5"})
+        self.assertEqual(result["source_count"], 1)
+        self.assertEqual(result["spread"], 0.0)
+        self.assertIn("Only one", result["interpretation"])
+
     def test_output_security_boundary_is_explicit(self):
         notice = hotelist.UNTRUSTED_NOTICE
         self.assertIn("UNTRUSTED EXTERNAL DATA", notice)
