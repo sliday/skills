@@ -34,6 +34,17 @@ class HotelistTests(unittest.TestCase):
         self.assertEqual(metadata["Google Maps"]["freshness"], "4mo ago (2026-04-08)")
         self.assertEqual(metadata["Google Maps"]["lookup_url"], "https://example.test/google")
 
+    def test_detail_reports_partial_parse_when_fields_missing(self):
+        raw = """
+        <div>× 9.1 Example Hotel Book this hotel</div>
+        Hotelist Score 9.1 AI rating of photos 8.8
+        """
+        with patch.object(hotelist, "_request", return_value=raw):
+            result = hotelist.detail("TESTID01", max_age=-1)
+        self.assertEqual(result["parse_status"], "partial")
+        self.assertIn("source_agreement", result["missing_fields"])
+        self.assertIn("normalized_sources", result["missing_fields"])
+
     def test_detail_uses_row_parser_and_preserves_source_metadata(self):
         raw = """
         <div>× 9.1 Example Hotel Book this hotel</div>

@@ -25,7 +25,12 @@ Quantified regression eval. Run per release; track scores per version.
 - anchor recall: % of known-stay positive anchors surfaced WITH a gate verdict
 - reproducibility: replayed-and-matching Hotelist figures / cited figures
 - negative-coverage completeness: finalists with full query matrix / finalists
-- D5 price-honesty mean; winner stability across 3 runs; points per 100k tokens
+- D5 price-honesty mean; points per 100k tokens
+- winner stability across 3 runs, conditioned on identical negative-coverage
+  matrices (asymmetric coverage legitimately flips winners; only same-coverage
+  disagreement counts as instability)
+- paired uplift (skill vs no-skill) sized on discordant pairs (McNemar), not a
+  one-proportion bound; report raw counts, no decimals below n=30
 
 ## Private anchors
 

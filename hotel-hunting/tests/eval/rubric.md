@@ -15,8 +15,15 @@ D5 Price honesty: decision-grade vs indicative separated; no budget arithmetic
    on indicative prices; UNVERIFIED stated when blocked.
 D6 Decision quality: one winner, conditional fallback, reasoned rejections,
    watch-outs with mitigations, explicit uncertainty and flip conditions.
-D7 Ground-truth recovery (anchor briefs only): the anchor hotel appears with
-   an explicit gate verdict; omission is reasoned, not silent.
+D7 Ground-truth recovery (anchor briefs only), scored as THREE separate
+   sub-results, never one number:
+   - process recall: the anchor appears with an explicit gate verdict;
+     omission is reasoned, not silent;
+   - ex-ante defensibility: the recommendation is justified by the frozen
+     public evidence available at run time (a defensible avoid on documented
+     risk is NOT an error even when the traveler's own stay went well);
+   - outcome agreement: matches the recorded post-stay outcome; report it,
+     but never let it overrule a defensible ex-ante call.
 D8 Reproducibility: cited tool figures replay and match; irreproducible
    precision (review counts, deep URLs, ids) scores 0. Judge receives a
    verified-facts block; never assume tool availability.

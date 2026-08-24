@@ -407,6 +407,11 @@ def detail(hotel_id: str, *, max_age: int) -> dict[str, Any]:
     required = ["hotelist_score", "ai_photo_score", "ai_review_score", "source_agreement"]
     if not any(out[k] for k in required):
         raise HotelistError("detail response shape changed; no score fields parsed")
+    missing = [k for k in required if not out[k]]
+    if not sources:
+        missing.append("normalized_sources")
+    out["parse_status"] = "full" if not missing else "partial"
+    out["missing_fields"] = missing
     return out
 
 
