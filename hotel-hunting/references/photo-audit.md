@@ -30,6 +30,16 @@ Treat DuckDuckGo only as an index, never as provenance. For every selected resul
 
 Browser image results may render blank, and unofficial `vqd`/`i.js` or `ddgs` clients can be rate-limited or blocked. Failure is a source-availability warning, not evidence about the hotel.
 
+## Runtime handling
+
+- Save downloaded images with a correct extension (`.jpg`, `.png`); some
+  multimodal readers render bytes as text otherwise.
+- A CDN error body (`NoSuchKey`, 403) means the cached URL is stale or
+  hotlink-protected: re-resolve from the live page or another source before
+  concluding photos are unavailable.
+- If the runtime has no vision capability, mark photo-dependent claims
+  `unverified` instead of narrating unseen images.
+
 ## Google Places photos
 
 Use Places API (New), not the legacy endpoint, for new integrations:
