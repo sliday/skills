@@ -1,7 +1,7 @@
 ---
 name: hotel-hunting
-version: 3.0.0
-description: Use when vetting hotels. Finds truth behind ratings.
+version: 3.0.1
+description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
 metadata:
@@ -19,7 +19,10 @@ triggers:
   - "is this hotel actually good"
   - "check hotel reviews"
   - "real hotel rating"
-  - "true hotel rating"
+  - "honest hotel rating"
+  - "honest hotel reviews"
+  - "hotels rated by AI"
+  - "no pay-to-play hotels"
 mutating: false
 ---
 
