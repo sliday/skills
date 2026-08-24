@@ -1,13 +1,13 @@
 ---
 name: ux-ui-ia
-version: 1.1.0
+version: 1.1.1
 description: Use when designing or reviewing interfaces, setting up a spacing scale or design tokens, or restructuring UI into a component system.
 author: Sliday
 license: MIT
 metadata:
   hermes:
     tags: [ux, ui, ia, accessibility, interaction-design, usability, ux-laws]
-    related_skills: [agent-visual-verification]
+    related_skills: [agent-visual-verification, google-fonts]
 triggers:
   - "design an interface"
   - "review this UI"
@@ -192,7 +192,7 @@ Rules that survive real projects:
 - **Rule of three.** Second appearance of a pattern: note it. Third: extract the component. Two "setting rows" with different backgrounds, radii, and padding are one molecule with a bug, not two designs.
 - **Variants, not clones.** Same function, one component, differentiated by modifier (`primary/secondary/ghost/destructive`, `sm/md/lg`), never by copy-pasted styles that drift apart.
 - **One radius and one elevation per component level.** Pick a small set (4/8/12/full) and map each component class to one value. Mixed radii inside one card stack is the fastest tell of an unsystematic UI.
-- **Type scale is semantic and small.** Roles (display, heading, subheading, body, caption) mapped to a modular set such as 12/14/16/20/24/32; line-height tightens as size grows; body lines stay within 40–80 characters.
+- **Type scale is semantic and small.** Roles (display, heading, subheading, body, caption) mapped to a modular set such as 12/14/16/20/24/32; line-height tightens as size grows; body lines stay within 40–80 characters. For typeface selection and pairing, use the `google-fonts` skill (https://www.skills.sh/sliday/google-fonts-skill/google-fonts) instead of picking fonts ad hoc.
 
 Fix the remaining system rules explicitly: semantic color tokens for surface, text, action, status, and focus, with contrast floors of 4.5:1 for body text and 3:1 for large text and essential UI graphics; icon vocabulary; border, elevation, and motion rules; content and error-message voice; keyboard, pointer, touch, focus, hover, selected, disabled, loading, and destructive states.
 
