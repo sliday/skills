@@ -1,6 +1,6 @@
 ---
 name: ux-ui-ia
-version: 1.1.1
+version: 1.2.0
 description: Use when designing or reviewing interfaces, setting up a spacing scale or design tokens, or restructuring UI into a component system.
 author: Sliday
 license: MIT
@@ -152,9 +152,23 @@ Use the classic response-time bands as design heuristics, not service-level guar
 
 ### 5. Define the interface system
 
-Create a constrained system rather than styling each screen independently. Two defaults do most of the work: an **8px spatial grid** and **atomic composition**. If the codebase already has an equivalent system, extend it; never run a second system beside it.
+Create a constrained system rather than styling each screen independently. Two defaults do most of the work: an **8px spatial grid** and **atomic composition**. If the codebase already has an equivalent system, extend it; never run a second system beside it. Set direction before spending the grid:
 
-#### 5a. Spacing and sizing: the 8px grid
+#### 5a. Aesthetic direction
+
+- Commit before styling: name the subject, audience, and the page's single job; derive palette, type, and layout from the subject's own world (frontend-design).
+- Kill the generic-AI looks: cream near #F4F1EA + serif + terracotta; near-black + lone acid-green/vermilion accent; broadsheet hairlines + zero radius. Use one only when the brief asks (frontend-design).
+- No purple-on-white default; no dark-mode bias unless requested; no flat single-color backgrounds, layer gradient/imagery/pattern for atmosphere (better-frontend).
+- Plan a token brief first: 4-6 named hex values, 2+ type roles (characterful display used with restraint, complementary body), one layout concept, one signature element. If any part matches what you would make for any similar prompt, revise it (frontend-design).
+- Spend boldness in one place: one signature element, everything around it quiet; remove one accessory before shipping (frontend-design).
+
+**Typography-led hierarchy**
+
+- Two typefaces max; never default to Inter/Roboto/Arial/system-ui unless the design system requires them. Type carries the page's personality (better-frontend, frontend-design).
+- Build hierarchy from weight + size + leading as a set; emphasize with weight, it adds presence without space (apple-design).
+- Tracking is size-specific: about -0.02em on display, near 0 on body, slightly positive on small text; leading inversely with size (apple-design).
+
+#### 5b. Spacing and sizing: the 8px grid
 
 Every padding, margin, gap, and fixed box dimension comes from one scale on an 8px base, with 4px as the half-step for tight pairs (icon-to-label, checkbox-to-text):
 
@@ -170,9 +184,9 @@ Rules that survive real projects:
 - **The spacing ladder must never invert.** Spacing encodes grouping (Law of Proximity): label-to-control 4–8, siblings inside a group 8–16, between groups 24–32, between page sections 48+. A card whose internal padding (16) exceeds the gap to its neighbor (8) reads as one merged blob.
 - **Size controls on the grid.** Control heights 32/40/48; icons 16/20/24; pointer targets at least 24×24 (WCAG 2.2 floor), 44×44 for primary touch actions.
 - **Exceptions are declared, not leaked.** A living system tolerates a few off-scale values (a 12px chip padding, an 80px hero offset) when they are named tokens with a stated reason. Silent literals like 9px, 13px, 17px are defects.
-- **Audit mechanically.** Grep the styles for `px` values not divisible by 4; that list is the violation report. In rendered review, off-grid values appear as almost-aligned edges: measure, do not eyeball.
+- **Audit mechanically.** Run `scripts/grid-audit.sh`: it flags off-grid px per property (0/1/2 and line-height/letter-spacing exempt; font-size checked against the type set). In rendered review, off-grid values appear as almost-aligned edges: measure, do not eyeball.
 
-#### 5b. Composition: the atomic system
+#### 5c. Composition: the atomic system
 
 Build in strict layers; each layer consumes only the layer below:
 
@@ -198,9 +212,84 @@ Fix the remaining system rules explicitly: semantic color tokens for surface, te
 
 One-off visual values require a reason. Consistency is not sameness: component variants should communicate different semantics while remaining part of one system.
 
+#### 5d. Craft details
+
+##### Surfaces
+
+- Concentric radius: outerRadius = innerRadius + padding. Above 24px padding, treat layers as separate surfaces (make-interfaces-feel-better).
+- Shadows over borders for elevation. Light token: `0 0 0 1px rgba(0,0,0,.06), 0 1px 2px -1px rgba(0,0,0,.06), 0 2px 4px 0 rgba(0,0,0,.04)`; hover .08/.08/.06. Dark: single ring `0 0 0 1px rgba(255,255,255,.08)`, hover .13. Keep real borders for dividers and input outlines (make-interfaces-feel-better).
+- One box-shadow depth per section (better-frontend).
+- Image outlines: `1px` `rgba(0,0,0,0.1)` light / `rgba(255,255,255,0.1)` dark, `outline-offset: -1px`. Pure black/white only; tinted neutrals read as dirt (make-interfaces-feel-better).
+- Translucent chrome: `backdrop-filter: blur(20px) saturate(180%)` + semi-transparent bg; never stack two light translucent surfaces; scroll-edge fade instead of a 1px border under sticky headers (apple-design).
+- Dim scrim behind modal tasks; parallel non-blocking panels get no scrim (apple-design).
+
+##### Optical alignment
+
+- Optical beats geometric. Icon-side button padding = text-side minus 2px; play triangles shift about 2px right; fix asymmetric icons in the SVG itself (make-interfaces-feel-better).
+
+##### Text rendering
+
+- `text-wrap: balance` on headings (works only up to 6 lines Chromium / 10 Firefox); `text-wrap: pretty` on short-to-medium body; neither on 10+ lines (make-interfaces-feel-better).
+- `font-variant-numeric: tabular-nums` on any updating number (counters, timers, prices, table columns); not on phone numbers or version strings (make-interfaces-feel-better).
+- `-webkit-font-smoothing: antialiased` + `-moz-osx-font-smoothing: grayscale` once at the root (make-interfaces-feel-better).
+- Author the spacing scale in rem so it tracks user text size: 4px = 0.25rem, 8px = 0.5rem, 16px = 1rem. The px values in 5b name design-time grid steps, not literal units (apple-design).
+
+##### Interaction feel
+
+- Feedback on pointer-down, not release; continuous during the interaction (apple-design).
+- Scale on press: `:active { scale: 0.96 }` with 150ms ease-out; never below 0.95; offer a `static` opt-out (make-interfaces-feel-better, emil-design-eng).
+- Gate hover behind `@media (hover: hover) and (pointer: fine)` (emil-design-eng).
+- Extend small controls to full hit size with a pseudo-element; never overlap two hit areas (make-interfaces-feel-better).
+- Tooltips: delay the first, open adjacent ones instantly with no animation while one is open (emil-design-eng).
+- Same action name through the flow: "Publish" button yields "Published" toast; errors say what happened and how to fix, no apology, never vague (frontend-design).
+
+##### Self-check
+
+- Review with fresh eyes next day; play animations at 2-5x duration and frame-by-frame to catch overlap, wrong transform-origin, desynced properties (emil-design-eng).
+- Report polish diffs as a Before/After/Why table, one row per change (emil-design-eng).
+
+#### 5e. Motion
+
+##### Decide first
+
+- Frequency gate: 100+ uses/day (keyboard shortcuts, command palette) never animate; tens/day reduce drastically; occasional (modals, drawers, toasts) standard; rare moments may delight. Never animate keyboard-initiated actions; context menus animate exit only (emil-design-eng, 12-principles-of-animation).
+- Every animation names a purpose: spatial consistency, state indication, feedback, explanation, or preventing a jarring change. "Looks cool" + frequent = cut (emil-design-eng).
+
+##### Durations
+
+- Press feedback 100-160ms; tooltips/small popovers 125-200ms; dropdowns/selects 150-250ms; modals/drawers 200-300ms, large drawers up to 500ms only as a declared exception (the craft audit flags >=400ms for review); general UI ceiling 300ms (emil-design-eng).
+- Exits shorter and softer than enters (150ms vs 300ms); exit with small fixed translateY about -12px, not container height (make-interfaces-feel-better).
+- Identical timing for similar elements; slow only where the user decides (hold-to-delete 2s linear), fast where the system responds (release 200ms ease-out) (12-principles-of-animation, emil-design-eng).
+
+##### Easing
+
+- Enter ease-out, exit ease-in, on-screen move ease-in-out, hover/color ease, linear only for constant motion. Never ease-in on entrances (emil-design-eng, 12-principles-of-animation).
+- Built-ins are weak; tokens: `--ease-out: cubic-bezier(0.23,1,0.32,1)`, `--ease-in-out: cubic-bezier(0.77,0,0.175,1)`, drawer `cubic-bezier(0.32,0.72,0,1)` (emil-design-eng).
+
+##### What and how
+
+- Animate only transform, opacity, filter, clip-path; never `transition: all`, list exact properties (emil-design-eng, make-interfaces-feel-better).
+- Never enter from `scale(0)`: use `scale(0.95)` + `opacity: 0`; enter recipe adds `translateY(8-12px)` + `blur(4px)` (emil-design-eng, make-interfaces-feel-better).
+- Popovers scale from their trigger's transform-origin; modals stay centered. Enter and exit along the same path (emil-design-eng, apple-design).
+- Stagger semantic chunks about 100ms apart, list items 30-80ms (50ms cap for dense lists); one focal point at a time; never block interaction (make-interfaces-feel-better, 12-principles-of-animation).
+- CSS transitions for interactive state (interruptible, retargets); keyframes only for one-shot sequences; `@starting-style` for entry; `initial={false}` so default-state elements skip mount animation (emil-design-eng, make-interfaces-feel-better).
+- Springs for gestures: bounce 0 default, 0.1-0.3 only after a flick; animate from the live on-screen value; hand off release velocity; rubber-band boundaries instead of hard stops (apple-design).
+
+##### Reduced motion
+
+- `prefers-reduced-motion: reduce` means gentler, not zero: keep opacity/color changes, replace slides/springs/parallax with about 200ms cross-fades, drop overshoot; `prefers-reduced-transparency` raises bg opacity and drops blur (emil-design-eng, apple-design).
+
 ### 6. Compose hierarchy and layout
 
 Use size, contrast, position, spacing, alignment, and containment to reflect actual importance.
+
+Marketing-surface composition rules:
+
+- Hero budget: brand, one headline, one supporting sentence, one CTA group, one dominant image. No stat strips, pill clusters, icon rows, promo chips (better-frontend).
+- Brand test: remove the nav; if the first viewport could belong to another brand, branding is too weak (better-frontend).
+- Full-bleed hero on landing pages; no inset/rounded media-card heroes, no floating badges on hero media (better-frontend).
+- Cards only when they contain interaction. Card test: strip border/shadow/background; if nothing is lost, it is not a card (better-frontend).
+- Structure encodes meaning: 01/02/03 markers only for real sequences; marketing narrative runs hero, supporting imagery, product detail, social proof, final CTA (frontend-design, better-frontend).
 
 Required checks:
 
@@ -259,6 +348,16 @@ Source code, a design file, or a component test is not enough. When implementati
 8. distinguish verified behavior from assumptions and remaining risks.
 
 Use `agent-visual-verification` when a deterministic screenshot evidence path is needed. Use full browser automation when the flow requires navigation, typing, state mutation, network inspection, or assertions.
+
+## Automated guards
+
+The skill ships mechanical checks; run them instead of eyeballing:
+
+- **`scripts/grid-audit.sh <file-or-dir>`** flags every px value off the 8px grid, per CSS property: margins/padding/gap/radius must be 0/1/2 or divisible by 4; `font-size` must be in the 12/14/16/20/24/32 set; `line-height` and `letter-spacing` are exempt (readability beats grid). Exit 1 on violations, with `file:line: property value` output.
+- **`hooks/design-guard.sh`** is a PostToolUse hook: after any Edit/Write to a `.css/.scss/.less/.html/.jsx/.tsx/.vue/.svelte` file, it audits that file and feeds violations back to the agent as a fix prompt. Silent on clean files, non-style files, and malformed input; never blocks the edit itself; no retries.
+- Install: merge `hooks/hooks.json` into `.claude/settings.json` (project) or `~/.claude/settings.json` (global); adjust the script path to where this skill is installed.
+
+The guard catches literals, not judgment: it cannot see an inverted proximity ladder, a cloned component, or a missing state. Those still require the review workflow above.
 
 ## Review severity
 
@@ -334,7 +433,7 @@ For implementation tasks, make the changes and cite concrete files/components. D
 
 ## Sources and provenance
 
-This is an original synthesis. A user-provided set of 18 UX-law notes was treated as source material, then rewritten, de-frameworked, corrected, and consolidated rather than republished as separate micro-skills.
+This is an original synthesis. Version 1.2 additionally merges concrete craft rules mined from installed design skills (better-frontend, make-interfaces-feel-better, emil-design-eng, apple-design, frontend-design, 12-principles-of-animation, ui-ux-pro-max, landing-page-design, web-design-guidelines, google-fonts); the full deduped catalog with per-rule attribution lives in `references/borrowed-craft.md`. A user-provided set of 18 UX-law notes was treated as source material, then rewritten, de-frameworked, corrected, and consolidated rather than republished as separate micro-skills.
 
 Useful public references:
 
