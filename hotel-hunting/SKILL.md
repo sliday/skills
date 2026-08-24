@@ -27,7 +27,6 @@ mutating: false
 ---
 
 # Hotel Hunting
-
 ## Origin and mission
 
 Inspired by [Hotelist](https://hotelist.com), created by
