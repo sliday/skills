@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.2.2
+version: 3.3.0
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -52,6 +52,8 @@ Use for either of two intents:
 
 1. **Truth audit:** “Is this hotel actually good?” or “What is its real rating?”
 2. **Stay decision:** find and verify the best hotel for exact dates and needs.
+3. **Known-stay calibration:** test whether the workflow recovers facts a
+   traveler personally observed without bending the research toward them.
 
 Run the truth audit first. Add exact-rate verification only when dates,
 inventory, or booking are relevant. Pair with `travel-itinerary-planning` when
@@ -124,6 +126,13 @@ For a truth audit, identify:
 - hotel and location;
 - traveler’s dealbreaker;
 - relevant room category or season, if known.
+
+For known-stay calibration, write the traveler-observed facts down **before**
+retrieval, including room category, stay date/season, and whether each fact is
+hotel-wide or room-specific. Do not feed the expected conclusion into broad
+discovery queries. Research normally, then classify each expected fact as
+`recovered`, `corroborated`, `contradicted`, or `not recoverable from public
+evidence`. Also record important false positives produced by the workflow.
 
 For a stay decision, identify:
 
@@ -269,6 +278,8 @@ praise. One dramatic anecdote is not consensus.
 
 For every decisive claim, mark it as:
 
+- **traveler-verified** — the requesting traveler directly experienced it;
+  record room/season/date when known and do not generalize it across all rooms;
 - **source-visible** — underlying report/review/photo was inspected;
 - **Hotelist-derived** — Hotelist reports it, but the source was not exposed;
 - **independently corroborated** — matching evidence was found elsewhere.
@@ -276,7 +287,32 @@ For every decisive claim, mark it as:
 Never turn a Hotelist-generated pro such as “soundproofed rooms” into an
 independently verified fact without support.
 
-### 5.3 Photo forensics
+Firsthand traveler evidence outranks anonymous summaries for that observed
+stay, but it remains one stay. Use it to calibrate the workflow and personalize
+future choices, not to claim that every room, employee, or season is identical.
+
+### 5.3 Known-stay calibration report
+
+When the traveler already knows the hotel, append:
+
+```text
+Calibration facts:
+- <expected fact>: <recovered | corroborated | contradicted | not publicly recoverable>
+
+False positives:
+- <claim the workflow produced but direct/independent evidence disputes>
+
+Calibration verdict:
+- Recall: <facts recovered or corroborated>/<facts supplied>
+- Precision warning: <unsupported or contradicted claims>
+- Workflow change: <none, or the exact correction required>
+```
+
+Do not grade a system as successful merely because its overall recommendation
+matches the traveler. It must recover the concrete reasons and avoid confident
+false claims.
+
+### 5.4 Photo forensics
 
 Prefer recent guest media for the actual room category over hero photography.
 Check:
@@ -454,6 +490,8 @@ Include the Rating Decision Cards beneath this summary. At most three finalists.
 - [ ] Newest and lowest-rated evidence inspected
 - [ ] Three strongest negatives reported or absence stated honestly
 - [ ] Claim provenance labeled
+- [ ] Known-stay facts locked before retrieval and calibration misses/false
+      positives reported when testing against firsthand experience
 - [ ] Recent guest media for the actual room category inspected
 - [ ] Hard gates applied before ratings
 - [ ] Exact stay and all-in price verified when relevant
