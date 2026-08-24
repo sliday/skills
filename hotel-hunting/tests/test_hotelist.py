@@ -85,6 +85,13 @@ class HotelistTests(unittest.TestCase):
         self.assertIn("disagree strongly", result["interpretation"])
         self.assertNotIn("score", result)
 
+    def test_source_disagreement_rounds_before_threshold_classification(self):
+        result = hotelist.source_disagreement(
+            {"Tripadvisor": "7.3", "Trip.com": "8.3"}
+        )
+        self.assertEqual(result["spread"], 1.0)
+        self.assertIn("meaningful disagreement", result["interpretation"])
+
     def test_source_disagreement_needs_multiple_sources(self):
         result = hotelist.source_disagreement({"Booking.com": "8.5"})
         self.assertEqual(result["source_count"], 1)

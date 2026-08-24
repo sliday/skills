@@ -226,7 +226,7 @@ def source_disagreement(sources: dict[str, str]) -> dict[str, Any]:
             "spread": None,
             "interpretation": "No normalized source scores were parsed.",
         }
-    spread = max(values) - min(values)
+    spread = round(max(values) - min(values), 2)
     if len(values) < 2:
         interpretation = "Only one normalized source was parsed; disagreement cannot be assessed."
     elif spread <= 0.5:
@@ -241,7 +241,7 @@ def source_disagreement(sources: dict[str, str]) -> dict[str, Any]:
         "maximum": max(values),
         "lowest_sources": [name for name, value in sources.items() if float(value) == min(values)],
         "highest_sources": [name for name, value in sources.items() if float(value) == max(values)],
-        "spread": round(spread, 2),
+        "spread": spread,
         "interpretation": interpretation,
     }
 
