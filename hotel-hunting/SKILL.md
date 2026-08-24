@@ -308,9 +308,8 @@ Calibration verdict:
 - Workflow change: <none, or the exact correction required>
 ```
 
-Do not grade a system as successful merely because its overall recommendation
-matches the traveler. It must recover the concrete reasons and avoid confident
-false claims.
+A matching recommendation is insufficient: recover the concrete reasons and
+avoid confident false claims.
 
 ### 5.4 Photo forensics
 
