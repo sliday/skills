@@ -39,7 +39,10 @@ records may include `hotel_id`, `hotellist_rating`, `price`, `latitude`,
 `longitude`, `photo`, `name`, `pros`, `cons`, and `year_built`.
 
 `price` is a minimum observed nightly figure, not exact-date inventory.
-Duplicate property records have been observed. Deduplicate before ranking.
+Duplicate property records have been observed. The CLI collapses only repeated
+records with the same non-empty Hotelist ID. Same-name records with different
+IDs and nameless records remain in output with integrity warnings until richer
+identity evidence can resolve them; it does not keep only the highest score.
 
 No response cap was observed in one central-Athens test, but this is not a
 stable guarantee.

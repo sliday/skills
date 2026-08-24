@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.4.3
+version: 3.4.4
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT

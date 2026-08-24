@@ -71,8 +71,8 @@ class HotelistTests(unittest.TestCase):
             },
         ]
         kept, warnings = hotelist.dedupe(rows)
-        self.assertEqual([h["hotel_id"] for h in kept], ["A"])
-        self.assertEqual(warnings[0]["type"], "possible_duplicate")
+        self.assertEqual([h["hotel_id"] for h in kept], ["A", "B"])
+        self.assertEqual(warnings[0]["type"], "possible_duplicate_unresolved")
         self.assertEqual(warnings[0]["other_id"], "B")
 
     def test_same_name_far_away_is_not_merged(self):
@@ -83,6 +83,24 @@ class HotelistTests(unittest.TestCase):
         kept, warnings = hotelist.dedupe(rows)
         self.assertEqual(len(kept), 2)
         self.assertEqual(warnings[0]["type"], "same_name_different_location")
+
+    def test_missing_names_are_never_merged(self):
+        rows = [
+            {"name": "", "hotel_id": "A", "hotellist_rating": 9, "latitude": 0, "longitude": 0},
+            {"name": None, "hotel_id": "B", "hotellist_rating": 8, "latitude": 0, "longitude": 0},
+        ]
+        kept, warnings = hotelist.dedupe(rows)
+        self.assertEqual([h["hotel_id"] for h in kept], ["A", "B"])
+        self.assertEqual([w["type"] for w in warnings], ["missing_name_unresolved", "missing_name_unresolved"])
+
+    def test_exact_repeated_hotel_id_is_collapsed(self):
+        rows = [
+            {"name": "Example", "hotel_id": "A", "hotellist_rating": 9, "latitude": 0, "longitude": 0},
+            {"name": "Example", "hotel_id": "A", "hotellist_rating": 8, "latitude": 0, "longitude": 0},
+        ]
+        kept, warnings = hotelist.dedupe(rows)
+        self.assertEqual([h["hotel_id"] for h in kept], ["A"])
+        self.assertEqual(warnings[0]["type"], "exact_id_duplicate")
 
     def test_cohort_context_preserves_scores_and_handles_ties(self):
         rows = [
