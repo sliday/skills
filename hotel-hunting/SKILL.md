@@ -1,6 +1,6 @@
 ---
 name: hotel-hunting
-version: 3.3.0
+version: 3.4.0
 description: Use when finding honest hotel ratings, not pay-to-play. Uses Hotelist normalization and AI to check real traveler reports and room photos.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -313,15 +313,16 @@ avoid confident false claims.
 
 ### 5.4 Photo forensics
 
-Prefer recent guest media for the actual room category over hero photography.
-Check:
+Follow `references/photo-audit.md`. For each finalist, attempt an official
+actual-room set and a materially independent recent guest-photo set. Use Google
+Places photos when API access exists; otherwise try public Google Maps, booking
+platform guest galleries, traveler uploads, and room tours. A blocked or empty
+source means `photo coverage unavailable`, not `no visual problem`.
 
-- wear, grout, mold, stains, water damage;
-- light, window size, privacy, and actual view;
-- bed clearance, luggage space, desk ergonomics, sockets;
-- wide-angle distortion and renovated-room versus old-wing mismatch;
-- proximity to roads, bars, lifts, plant rooms, or construction;
-- whether gym, kitchen, pool, workspace, balcony, or bath is genuinely usable.
+Assess visible condition, room geometry, light/privacy, design coherence,
+wide-angle distortion, renovated-versus-old inventory, and whether advertised
+amenities look usable. Audit experience promises such as `boutique`, `design`,
+`luxury`, `historic`, and `spa` against the images instead of accepting labels.
 
 AI vision can assess visible condition, ambiance, and amenity presence. It
 cannot prove quiet, smell, mattress quality, water pressure, temperature
@@ -492,6 +493,7 @@ Include the Rating Decision Cards beneath this summary. At most three finalists.
 - [ ] Known-stay facts locked before retrieval and calibration misses/false
       positives reported when testing against firsthand experience
 - [ ] Recent guest media for the actual room category inspected
+- [ ] Visual promise audit separates official, guest, and unknown-room media
 - [ ] Hard gates applied before ratings
 - [ ] Exact stay and all-in price verified when relevant
 - [ ] Winner, fallback, rejections, confidence, and uncertainty explicit
