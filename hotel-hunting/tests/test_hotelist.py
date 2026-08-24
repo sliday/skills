@@ -13,6 +13,41 @@ spec.loader.exec_module(hotelist)
 
 
 class HotelistTests(unittest.TestCase):
+    NORMALIZED_TABLE = """
+    <table>
+      <tr><td class="key">👍 Average rating<sup>*</sup></td><td class="value"><div class="filling">9.3</div></td></tr>
+      <tr><td class="key"><a href="https://example.test/google">Google Maps<sup>*</sup></a></td><td class="value"><div class="filling">8.5</div><div class="last-updated">4mo ago (2026-04-08)</div></td></tr>
+      <tr><td class="key"><a href="https://example.test/booking">Booking.com<sup>*</sup></a></td><td class="value"><div class="filling">8.5</div><div class="last-updated">2y ago (2024-07-17)</div></td></tr>
+      <tr><td class="key"><a href="https://example.test/tripadvisor">Tripadvisor<sup>*</sup></a></td><td class="value"><div class="filling">10</div><div class="last-updated">2y ago (2024-07-17)</div></td></tr>
+      <tr><td class="key"><a href="https://example.test/expedia">Expedia<sup>*</sup></a></td><td class="value"><div class="filling">10</div><div class="last-updated">2y ago (2024-07-17)</div></td></tr>
+      <tr><td colspan="2"><strong>About normalized ratings.</strong></td></tr>
+    </table>
+    """
+
+    def test_normalized_source_rows_do_not_shift_average_into_first_source(self):
+        sources, metadata = hotelist.parse_normalized_sources(self.NORMALIZED_TABLE)
+        self.assertEqual(
+            sources,
+            {"Google Maps": "8.5", "Booking.com": "8.5", "Tripadvisor": "10", "Expedia": "10"},
+        )
+        self.assertNotIn("Average rating", sources)
+        self.assertEqual(metadata["Google Maps"]["freshness"], "4mo ago (2026-04-08)")
+        self.assertEqual(metadata["Google Maps"]["lookup_url"], "https://example.test/google")
+
+    def test_detail_uses_row_parser_and_preserves_source_metadata(self):
+        raw = """
+        <div>× 9.1 Example Hotel Book this hotel</div>
+        Hotelist Score 9.1 AI rating of photos 8.8 AI rating of reviews 9.0 Consensus about rating 8.7
+        """ + self.NORMALIZED_TABLE
+        with patch.object(hotelist, "_request", return_value=raw):
+            result = hotelist.detail("EXAMPLE", max_age=0)
+        self.assertEqual(result["normalized_sources"]["Google Maps"], "8.5")
+        self.assertEqual(result["normalized_sources"]["Expedia"], "10")
+        self.assertEqual(
+            result["normalized_source_metadata"]["Booking.com"]["freshness"],
+            "2y ago (2024-07-17)",
+        )
+
     def test_bbox_uses_requested_radius(self):
         lat_min, lat_max, lng_min, lng_max = hotelist._bbox(38.0, 23.7, 10)
         self.assertAlmostEqual(lat_max - lat_min, 20 / 111, places=5)
@@ -138,9 +173,11 @@ class HotelistTests(unittest.TestCase):
                 },
             ]
         }
-        with patch.object(hotelist, "_request", return_value=json.dumps(response)):
-            with self.assertRaises(hotelist.AmbiguousPlace) as caught:
-                hotelist.geocode("Springfield")
+        with (
+            patch.object(hotelist, "_request", return_value=json.dumps(response)),
+            self.assertRaises(hotelist.AmbiguousPlace) as caught,
+        ):
+            hotelist.geocode("Springfield")
         self.assertEqual(len(caught.exception.candidates), 2)
 
     def test_country_disambiguates(self):

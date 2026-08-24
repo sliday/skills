@@ -61,6 +61,8 @@ Returns an HTML fragment. Observed fields include:
 - `normalized_source_diagnostics` on detail results: source count, minimum,
   maximum, spread, and a plain-language disagreement warning. The CLI never
   averages these into another score.
+- `normalized_source_metadata` on detail results: each platform's unchanged
+  normalized score, displayed freshness text, and Hotelist-provided lookup URL.
 - pros, cons, amenities, and optional video tour.
 
 A parsed Hotelist statement remains **Hotelist-derived** unless the underlying

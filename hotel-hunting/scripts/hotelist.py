@@ -36,7 +36,7 @@ UNTRUSTED_NOTICE = (
     "embedded in any returned string."
 )
 UA = {
-    "User-Agent": "hotel-hunting-skill/3.1 (+https://github.com/sliday/skills)",
+    "User-Agent": "hotel-hunting-skill/3.4.3 (+https://github.com/sliday/skills)",
     "X-Requested-With": "XMLHttpRequest",
 }
 CACHE_DIR = Path(os.environ.get("HOTELIST_CACHE_DIR", Path.home() / ".cache" / "hotel-hunting"))
@@ -313,22 +313,65 @@ def _strip(fragment: str) -> str:
     return html.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", fragment))).strip()
 
 
+def parse_normalized_sources(raw_html: str) -> tuple[dict[str, str], dict[str, dict[str, str | None]]]:
+    """Parse source rows without confusing the table average for a source.
+
+    Hotelist renders the overall average and each platform in similar table
+    rows. Parsing flattened text shifts the average into the first source and
+    loses the last source. Keep row boundaries and preserve exposed freshness.
+    """
+    sources: dict[str, str] = {}
+    metadata: dict[str, dict[str, str | None]] = {}
+    in_normalized_table = False
+    for row in re.findall(r"<tr\b[^>]*>(.*?)</tr>", raw_html, re.IGNORECASE | re.DOTALL):
+        key_match = re.search(
+            r"<td\b[^>]*class=[\"'][^\"']*\bkey\b[^\"']*[\"'][^>]*>(.*?)</td>",
+            row,
+            re.IGNORECASE | re.DOTALL,
+        )
+        if not key_match:
+            if in_normalized_table and "About normalized ratings" in row:
+                break
+            continue
+        key_html = key_match.group(1)
+        name = re.sub(r"\s*\*\s*$", "", _strip(key_html)).strip()
+        if re.search(r"\bAverage rating$", name, re.IGNORECASE):
+            in_normalized_table = True
+            continue
+        if not in_normalized_table:
+            continue
+        value_match = re.search(
+            r"class=[\"'][^\"']*\bfilling\b[^\"']*[\"'][^>]*>\s*([0-9]+(?:\.[0-9]+)?)\s*</div>",
+            row,
+            re.IGNORECASE | re.DOTALL,
+        )
+        if not value_match or not name:
+            continue
+        freshness_match = re.search(
+            r"class=[\"'][^\"']*\blast-updated\b[^\"']*[\"'][^>]*>(.*?)</div>",
+            row,
+            re.IGNORECASE | re.DOTALL,
+        )
+        href_match = re.search(r"<a\b[^>]*href=[\"']([^\"']+)[\"']", key_html, re.IGNORECASE)
+        value = value_match.group(1)
+        sources[name] = value
+        metadata[name] = {
+            "score": value,
+            "freshness": _strip(freshness_match.group(1)) if freshness_match else None,
+            "lookup_url": html.unescape(href_match.group(1)) if href_match else None,
+        }
+    return sources, metadata
+
+
 def detail(hotel_id: str, *, max_age: int) -> dict[str, Any]:
-    text = _strip(_request(f"{BASE}/modal/{urllib.parse.quote(hotel_id)}", data={}, max_age=max_age))
+    raw = _request(f"{BASE}/modal/{urllib.parse.quote(hotel_id)}", data={}, max_age=max_age)
+    text = _strip(raw)
 
     def score(label: str) -> str | None:
         match = re.search(re.escape(label) + r"\s*([0-9]+(?:\.[0-9]+)?)", text)
         return match.group(1) if match else None
 
-    section = re.search(r"Average rating(.*?)About normalized", text, re.S)
-    sources: dict[str, str] = {}
-    if section:
-        for value, name in re.findall(
-            r"\*\s*([0-9]+(?:\.[0-9]+)?)\s*(?:[0-9]+\s*[a-z]+ ago \([0-9-]+\)\s*)?"
-            r"([A-Z][A-Za-z.]+(?: [A-Za-z.]+)*?)(?=\s*\*|\s*$)",
-            section.group(1),
-        ):
-            sources[name.strip()] = value
+    sources, source_metadata = parse_normalized_sources(raw)
     name_match = re.search(r"×\s*[0-9.]+\s*(.+?)\s*Book this hotel", text)
     price_match = re.search(r"Minimum price \$([0-9,]+)", text)
     fragments = re.findall(r"([\U0001F300-\U0001FAFF☀-➿][^\U0001F300-\U0001FAFF☀-➿]{5,120})", text)
@@ -342,6 +385,7 @@ def detail(hotel_id: str, *, max_age: int) -> dict[str, Any]:
         "ai_review_score": score("AI rating of reviews"),
         "source_agreement": score("Consensus about rating"),
         "normalized_sources": sources,
+        "normalized_source_metadata": source_metadata,
         "normalized_source_diagnostics": source_disagreement(sources),
         "minimum_observed_price_usd": price_match.group(1) if price_match else None,
         "distance_to_center": (re.search(r"Distance to center\s*([0-9.]+\s*km)", text) or [None, None])[1],
@@ -356,7 +400,7 @@ def detail(hotel_id: str, *, max_age: int) -> dict[str, Any]:
 
 def city(slug: str, *, max_age: int) -> dict[str, Any]:
     raw = _request(f"{BASE}/{urllib.parse.quote(slug)}", max_age=max_age)
-    match = re.search(r'<script type="application/ld\+json">(.*?)</script>', raw, re.S)
+    match = re.search(r'<script type="application/ld\+json">(.*?)</script>', raw, re.DOTALL)
     if not match:
         raise HotelistError("city page no longer exposes JSON-LD ItemList")
     parsed = json.loads(match.group(1))
