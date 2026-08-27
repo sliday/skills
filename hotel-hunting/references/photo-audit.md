@@ -32,6 +32,10 @@ Browser image results may render blank, and unofficial `vqd`/`i.js` or `ddgs` cl
 
 ## Runtime handling
 
+The `agent-visual-verification` skill is the canonical home for establishing and
+proving an image-capture path; use it when no trustworthy path exists yet. The
+notes below are the subset that bites during a photo audit.
+
 - Save downloaded images with a correct extension (`.jpg`, `.png`); some
   multimodal readers render bytes as text otherwise.
 - A CDN error body (`NoSuchKey`, 403) means the cached URL is stale or

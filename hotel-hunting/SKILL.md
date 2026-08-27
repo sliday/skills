@@ -7,7 +7,7 @@ license: MIT
 metadata:
   hermes:
     tags: [travel, hotels, reviews, booking, hotelist]
-    related_skills: [travel-itinerary-planning]
+    related_skills: [agent-visual-verification]
 triggers:
   - "find me a hotel"
   - "hotel hunting"
@@ -55,8 +55,9 @@ Use for either of two intents:
    traveler personally observed without bending the research toward them.
 
 Run the truth audit first. Add exact-rate verification only when dates,
-inventory, or booking are relevant. Pair with `travel-itinerary-planning` when
-route geometry or transport determines the choice.
+inventory, or booking are relevant. When route geometry or transport decides
+the choice, resolve the itinerary constraint first and treat it as a hard gate
+rather than ranking hotels in isolation.
 
 ## Contract
 
@@ -345,7 +346,9 @@ avoid confident false claims.
 
 ### 5.4 Photo forensics
 
-Follow `references/photo-audit.md`. For each finalist, attempt an official
+Follow `references/photo-audit.md`. When the runtime has no trustworthy
+screenshot or image-inspection path yet, establish one with the
+`agent-visual-verification` skill before treating any photo claim as evidence. For each finalist, attempt an official
 actual-room set and a materially independent recent guest-photo set. Use Google
 Places photos when API access exists; otherwise try public Google Maps, booking
 platform guest galleries, traveler uploads, and room tours. A blocked or empty

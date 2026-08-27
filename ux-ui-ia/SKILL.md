@@ -20,6 +20,11 @@ triggers:
   - "set up a spacing scale or 8px grid"
   - "create design tokens or a component system"
   - "normalize inconsistent spacing, radii, or type sizes"
+tools:
+  - browser
+  - terminal
+  - vision_analyze
+  - web_search
 mutating: false
 ---
 
