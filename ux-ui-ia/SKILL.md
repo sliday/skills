@@ -1,6 +1,6 @@
 ---
 name: ux-ui-ia
-version: 1.2.0
+version: 1.3.0
 description: Use when designing or reviewing interfaces, setting up a spacing scale or design tokens, or restructuring UI into a component system.
 author: Sliday
 license: MIT
@@ -161,6 +161,7 @@ Create a constrained system rather than styling each screen independently. Two d
 - No purple-on-white default; no dark-mode bias unless requested; no flat single-color backgrounds, layer gradient/imagery/pattern for atmosphere (better-frontend).
 - Plan a token brief first: 4-6 named hex values, 2+ type roles (characterful display used with restraint, complementary body), one layout concept, one signature element. If any part matches what you would make for any similar prompt, revise it (frontend-design).
 - Spend boldness in one place: one signature element, everything around it quiet; remove one accessory before shipping (frontend-design).
+- Work in grayscale first. Color is the easiest way to fake hierarchy; removing it forces spacing, size, and contrast to carry the structure. Add the palette once the gray version already reads correctly (refactoring-ui).
 
 **Typography-led hierarchy**
 
@@ -183,6 +184,8 @@ Rules that survive real projects:
 - **The grid governs boxes, not glyphs.** Apply it to padding, margins, gaps, control heights, and icon sizes. Line-height obeys readability, not the grid: 25.6px or 28px line-height is correct where the grid would force 24px or 32px.
 - **The spacing ladder must never invert.** Spacing encodes grouping (Law of Proximity): label-to-control 4–8, siblings inside a group 8–16, between groups 24–32, between page sections 48+. A card whose internal padding (16) exceeds the gap to its neighbor (8) reads as one merged blob.
 - **Size controls on the grid.** Control heights 32/40/48; icons 16/20/24; pointer targets at least 24×24 (WCAG 2.2 floor), 44×44 for primary touch actions.
+- **Start generous and subtract.** Adding space until a layout stops looking bad lands on the minimum tolerable amount. Starting from too much and trimming lands on the right amount (refactoring-ui).
+- **Steps must be far enough apart to choose between.** Adjacent values differ by roughly 25% or more; that is what makes the pick unambiguous. A plain every-4px list gives no basis to decide between 120 and 124. Above 96, continue the ratio rather than the increment: 128, 192, 256, 384 (refactoring-ui).
 - **Exceptions are declared, not leaked.** A living system tolerates a few off-scale values (a 12px chip padding, an 80px hero offset) when they are named tokens with a stated reason. Silent literals like 9px, 13px, 17px are defects.
 - **Audit mechanically.** Run `scripts/grid-audit.sh`: it flags off-grid px per property (0/1/2 and line-height/letter-spacing exempt; font-size checked against the type set). In rendered review, off-grid values appear as almost-aligned edges: measure, do not eyeball.
 
@@ -195,6 +198,7 @@ tokens → atoms → molecules → organisms → templates → screens
 ```
 
 - **Tokens** in two tiers: primitive (`--gray-700`, `--space-2`) and semantic (`--color-text`, `--btn-bg`). Components reference semantic tokens only, so theming and dark mode become token swaps, not rewrites.
+- **Build the ramps up front, in HSL.** Two related HSL values look related; two related hex codes do not. Give each hue 8–10 steps (three runs out immediately), name them 100 lightest to 900 darkest, and fix 500 first as a color that works as a button fill, then the ends, then fill the gaps. Start the dark end at a very dark neutral rather than true black. Never derive shades at runtime, which yields dozens of near-identical blues (refactoring-ui).
 - **Atoms:** button, input, label, icon, badge, checkbox. An atom never sets its own external margin; the parent owns spacing via gap.
 - **Molecules:** form field (label + control + help + error), search bar, setting row, menu item.
 - **Organisms:** form, card list, header, settings section.
@@ -206,9 +210,9 @@ Rules that survive real projects:
 - **Rule of three.** Second appearance of a pattern: note it. Third: extract the component. Two "setting rows" with different backgrounds, radii, and padding are one molecule with a bug, not two designs.
 - **Variants, not clones.** Same function, one component, differentiated by modifier (`primary/secondary/ghost/destructive`, `sm/md/lg`), never by copy-pasted styles that drift apart.
 - **One radius and one elevation per component level.** Pick a small set (4/8/12/full) and map each component class to one value. Mixed radii inside one card stack is the fastest tell of an unsystematic UI.
-- **Type scale is semantic and small.** Roles (display, heading, subheading, body, caption) mapped to a modular set such as 12/14/16/20/24/32; line-height tightens as size grows; body lines stay within 40–80 characters. For typeface selection and pairing, use the `google-fonts` skill (https://www.skills.sh/sliday/google-fonts-skill/google-fonts) instead of picking fonts ad hoc.
+- **Type scale is semantic and hand-picked.** Roles (display, heading, subheading, body, caption) map to a fixed set: 12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72. Hand-picked beats ratio-derived: modular scales produce fractional pixels that round unevenly, and they run too sparse at interface density and too dense at display sizes (refactoring-ui). Size the scale in px or rem, never em, since nested em values compound off the scale. The type scale and the spacing scale are separate sets: 32 is a valid spacing step and not a type step (use 30 or 36), and 30 is a type step but not a spacing step. Line-height tightens as size grows; body lines stay within 40–80 characters. For typeface selection and pairing, use the `google-fonts` skill (https://www.skills.sh/sliday/google-fonts-skill/google-fonts) instead of picking fonts ad hoc.
 
-Fix the remaining system rules explicitly: semantic color tokens for surface, text, action, status, and focus, with contrast floors of 4.5:1 for body text and 3:1 for large text and essential UI graphics; icon vocabulary; border, elevation, and motion rules; content and error-message voice; keyboard, pointer, touch, focus, hover, selected, disabled, loading, and destructive states.
+Fix the remaining system rules explicitly: semantic color tokens for surface, text, action, status, and focus, with contrast floors of 4.5:1 for body text and 3:1 for large text and essential UI graphics (large means 24px regular or 18.66px bold, not 18px; the separate 3:1 non-text floor covers borders that identify a control, not decorative dividers); icon vocabulary; border, elevation, and motion rules; content and error-message voice; keyboard, pointer, touch, focus, hover, selected, disabled, loading, and destructive states.
 
 One-off visual values require a reason. Consistency is not sameness: component variants should communicate different semantics while remaining part of one system.
 
@@ -226,6 +230,11 @@ One-off visual values require a reason. Consistency is not sameness: component v
 ##### Optical alignment
 
 - Optical beats geometric. Icon-side button padding = text-side minus 2px; play triangles shift about 2px right; fix asymmetric icons in the SVG itself (make-interfaces-feel-better).
+- Align mixed type sizes on one line by baseline, not center; centering misaligns them in a way that reads as subtly broken (refactoring-ui).
+- Add roughly +0.05em tracking to all-caps text: caps are uniform blocks that crowd at default spacing (refactoring-ui).
+- Keep icons near their intended size. A 16–24px icon blown up to 48px reads chunky and detail-starved; nest it in a colored circle instead (refactoring-ui).
+- Choose elevation by the element's z-position, not by which shadow looks best; shrinking a shadow on press reads as depressed (refactoring-ui).
+- Constrain user-uploaded imagery: fixed containers, cover-fit, crop the overflow. When an upload's edges dissolve into the page, use a faint inset shadow rather than a border, which fights the image's own colors (refactoring-ui).
 
 ##### Text rendering
 
@@ -283,6 +292,14 @@ One-off visual values require a reason. Consistency is not sameness: component v
 
 Use size, contrast, position, spacing, alignment, and containment to reflect actual importance.
 
+When reviewing an interface you did not design, or when the only report is "it looks off", start from `references/visual-diagnostics.md`: a symptom-to-fix index covering hierarchy, spacing, borders, typography, imagery, polish, and accessibility.
+
+Weight and color do more of this work than size. Leaning on size alone pushes the primary element to cartoon proportions and squeezes the secondary one below readability; keep sizes nearer the middle of the scale and separate levels with weight (600/700) and text color instead. Cap text colors at three (primary, secondary, tertiary), and hold all three to 4.5:1, which puts the lightest around the middle of the ramp rather than the pale end. When one element still refuses to lead, de-emphasize its neighbors instead of amplifying it (refactoring-ui).
+
+Rank actions by importance, not by semantics: primary is one solid high-contrast action per surface, secondary is outline or low-contrast fill, tertiary reads as a link. A destructive action is not automatically a large red button; give Delete tertiary treatment where it sits, then make it the primary action inside its confirmation dialog (refactoring-ui).
+
+When a component looks generic, the cause is usually an inherited mental picture of what that component is. Break the box: dropdowns can carry columns, icons, and per-item descriptions; a table column can hold two related fields; a radio group can become selectable cards that show the actual differences (refactoring-ui).
+
 Marketing-surface composition rules:
 
 - Hero budget: brand, one headline, one supporting sentence, one CTA group, one dominant image. No stat strips, pill clusters, icon rows, promo chips (better-frontend).
@@ -306,7 +323,9 @@ Avoid centering long reading text, excessive line length, ornamental cards, ambi
 ### 7. Design controls, forms, and content
 
 - Use familiar native semantics before custom widgets.
-- Keep visible labels; placeholders are examples, not labels.
+- Keep visible labels on inputs; placeholders are examples, not labels.
+- In read-only data display, labels are a last resort: most values identify themselves by format or context. Fold the label into the value ("12 left in stock") or make it clearly secondary. Spec sheets, where people scan for the label itself, are the exception. This never licenses removing input labels (refactoring-ui).
+- Design the empty state as a real screen: one illustration or mark, one clear headline, one emphasized action. Hide tabs, filters, and search until content exists to act on (refactoring-ui).
 - Ask only for information required now.
 - Match controls to the decision: checkbox for independent choices, radio for a small exclusive set, select/combobox for larger known sets, search/filter for large spaces.
 - Preserve entered data after errors.
@@ -353,7 +372,7 @@ Use `agent-visual-verification` when a deterministic screenshot evidence path is
 
 The skill ships mechanical checks; run them instead of eyeballing:
 
-- **`scripts/grid-audit.sh <file-or-dir>`** flags every px value off the 8px grid, per CSS property: margins/padding/gap/radius must be 0/1/2 or divisible by 4; `font-size` must be in the 12/14/16/20/24/32 set; `line-height` and `letter-spacing` are exempt (readability beats grid). Exit 1 on violations, with `file:line: property value` output.
+- **`scripts/grid-audit.sh <file-or-dir>`** flags every px value off the 8px grid, per CSS property: margins/padding/gap/radius must be 0/1/2 or divisible by 4; `font-size` must be in the 12/14/16/18/20/24/30/36/48/60/72 set; `line-height` and `letter-spacing` are exempt (readability beats grid). Exit 1 on violations, with `file:line: property value` output.
 - **`hooks/design-guard.sh`** is a PostToolUse hook: after any Edit/Write to a `.css/.scss/.less/.html/.jsx/.tsx/.vue/.svelte` file, it audits that file and feeds violations back to the agent as a fix prompt. Silent on clean files, non-style files, and malformed input; never blocks the edit itself; no retries.
 - Install: merge `hooks/hooks.json` into `.claude/settings.json` (project) or `~/.claude/settings.json` (global); adjust the script path to where this skill is installed.
 
@@ -433,7 +452,7 @@ For implementation tasks, make the changes and cite concrete files/components. D
 
 ## Sources and provenance
 
-This is an original synthesis. Version 1.2 additionally merges concrete craft rules mined from installed design skills (better-frontend, make-interfaces-feel-better, emil-design-eng, apple-design, frontend-design, 12-principles-of-animation, ui-ux-pro-max, landing-page-design, web-design-guidelines, google-fonts); the full deduped catalog with per-rule attribution lives in `references/borrowed-craft.md`. A user-provided set of 18 UX-law notes was treated as source material, then rewritten, de-frameworked, corrected, and consolidated rather than republished as separate micro-skills.
+This is an original synthesis. Version 1.2 additionally merges concrete craft rules mined from installed design skills (better-frontend, make-interfaces-feel-better, emil-design-eng, apple-design, frontend-design, 12-principles-of-animation, ui-ux-pro-max, landing-page-design, web-design-guidelines, google-fonts); the full deduped catalog with per-rule attribution lives in `references/borrowed-craft.md`. Version 1.3 adds a visual symptom-to-fix index in `references/visual-diagnostics.md` and inline hierarchy, palette, and type-scale rules distilled from Refactoring UI (Adam Wathan, Steve Schoger) by way of the refactoring-ui-skill notes, rewritten and reconciled with this skill's existing systems. A user-provided set of 18 UX-law notes was treated as source material, then rewritten, de-frameworked, corrected, and consolidated rather than republished as separate micro-skills.
 
 Useful public references:
 

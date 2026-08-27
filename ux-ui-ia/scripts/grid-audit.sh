@@ -4,14 +4,14 @@
 # Rules (per CSS property, not per line):
 #   - 0px, 1px, 2px allowed anywhere (hairlines, borders)
 #   - margins/padding/gap/sizes: n % 4 == 0 allowed (4 8 12 16 24 ...)
-#   - font-size: checked against type set {12,14,16,20,24,32}
+#   - font-size: checked against type set {12,14,16,18,20,24,30,36,48,60,72}
 #   - line-height, letter-spacing: never flagged (readability beats grid)
 # Exit 1 when violations found, 0 when clean.
 set -u
 python3 - "$@" <<'PY'
 import re, sys, os
 
-TYPE_SET = {12, 14, 16, 20, 24, 32}
+TYPE_SET = {12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72}
 SKIP = ("line-height", "letter-spacing")
 EXTS = (".css", ".scss", ".less", ".html", ".jsx", ".tsx", ".vue", ".svelte")
 DECL = re.compile(r'([a-zA-Z-]+)\s*:\s*([^;:"\'{}]+)')
@@ -43,7 +43,7 @@ for f in files(sys.argv[1:]):
                 v = float(raw)
                 if "font-size" in p:
                     if v not in TYPE_SET:
-                        violations.append(f"{f}:{i}: font-size {raw}px (not in type set 12/14/16/20/24/32)")
+                        violations.append(f"{f}:{i}: font-size {raw}px (not in type set 12/14/16/18/20/24/30/36/48/60/72)")
                 elif v not in (0, 1, 2):
                     if v != int(v):
                         violations.append(f"{f}:{i}: {p} {raw}px (fractional, off-grid)")

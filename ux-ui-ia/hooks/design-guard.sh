@@ -39,7 +39,7 @@ print(json.dumps({
     "decision": "block",
     "reason": "ux-ui-ia design guard: defects in the file you just edited.\n"
               + reason
-              + "\nGrid: 4/8/12/16/24/32/48/64/96, type 12/14/16/20/24/32, or a named exception token. Craft: exact transition properties, <=300ms, scale(0.95) enters."
+              + "\nGrid: 4/8/12/16/24/32/48/64/96, type 12/14/16/18/20/24/30/36/48/60/72, or a named exception token. Craft: exact transition properties, <=300ms, scale(0.95) enters."
 }))
 ' 2>/dev/null || exit 0
 exit 0

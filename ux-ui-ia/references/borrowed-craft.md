@@ -1,6 +1,6 @@
 #### Borrowed craft catalog
 
-Mined from local source skills: emil-design-eng, make-interfaces-feel-better, better-frontend, apple-design, frontend-design, 12-principles-of-animation. Deduped against ux-ui-ia SKILL.md v1.1.1 (8px grid + scale, atomic layers, two-tier tokens, contrast floors 4.5:1 and 3:1, UX-law tables, 24/44px targets, type set 12/14/16/20/24/32, google-fonts routing all omitted here). Each rule stands alone.
+Mined from local source skills: emil-design-eng, make-interfaces-feel-better, better-frontend, apple-design, frontend-design, 12-principles-of-animation. Deduped against ux-ui-ia SKILL.md v1.1.1 (8px grid + scale, atomic layers, two-tier tokens, contrast floors 4.5:1 and 3:1, UX-law tables, 24/44px targets, type set (12/14/16/18/20/24/30/36/48/60/72 as of v1.3), google-fonts routing all omitted here). Each rule stands alone.
 
 #### Aesthetic direction
 
