@@ -44,7 +44,7 @@ This skill produces interfaces that are understandable, operable, resilient, and
 - information architecture and task hierarchy precede component selection;
 - the complete flow includes loading, empty, partial, success, error, permission, offline, interruption, and recovery states where relevant;
 - UX laws are selected as diagnostic lenses, not treated as universal commandments;
-- accessibility, responsive behavior, content stress, and input modes are part of the design—not a cleanup pass;
+- accessibility, responsive behavior, content stress, and input modes are part of the design, not a cleanup pass;
 - recommendations are verified in the rendered interface when implementation access exists;
 - the output makes decisions and trade-offs explicit instead of producing generic advice.
 
@@ -111,7 +111,7 @@ Every consequential action must have visible availability, immediate acknowledgm
 
 ### 4. Select UX laws by the observed problem
 
-Do not decorate a design with law names after the fact. Start with a concrete failure—slow choice, missed target, forgotten context, weak grouping, abandoned flow—and select only the laws that explain it.
+Do not decorate a design with law names after the fact. Start with a concrete failure (slow choice, missed target, forgotten context, weak grouping, abandoned flow) and select only the laws that explain it.
 
 #### Decision and memory
 
@@ -398,10 +398,10 @@ Lead with blockers and majors. Do not bury a broken flow under spacing comments.
 
 1. **User, job, and interface promise**
 2. **Product truth and constraints**
-3. **IA hierarchy** — primary, secondary, tertiary, metadata
+3. **IA hierarchy**: primary, secondary, tertiary, metadata
 4. **Flow and state model**
-5. **Relevant UX laws** — problem → law → design move → trade-off
-6. **System rules** — spacing grid, tokens, atomic component inventory, type, color, motion, copy
+5. **Relevant UX laws**: problem → law → design move → trade-off
+6. **System rules**: spacing grid, tokens, atomic component inventory, type, color, motion, copy
 7. **Screen/component decisions**
 8. **Accessibility and resilience requirements**
 9. **Rendered verification evidence**
@@ -453,7 +453,7 @@ For implementation tasks, make the changes and cite concrete files/components. D
 - The task has no user interface or user-facing workflow.
 - The real blocker is an unresolved product, policy, legal, or business decision that design cannot safely invent.
 - The user needs empirical research with a specific population; run research rather than presenting heuristics as evidence.
-- A specialized domain standard—medical, aviation, automotive, financial trading, public safety—supersedes generic UX guidance.
+- A specialized domain standard (medical, aviation, automotive, financial trading, public safety) supersedes generic UX guidance.
 
 ## Sources and provenance
 
@@ -461,10 +461,10 @@ This is an original synthesis. Version 1.2 additionally merges concrete craft ru
 
 Useful public references:
 
-- Laws of UX — practitioner index of UX laws: https://lawsofux.com/
-- Nielsen Norman Group — 10 usability heuristics: https://www.nngroup.com/articles/ten-usability-heuristics/
-- Nielsen Norman Group — response-time limits: https://www.nngroup.com/articles/response-times-3-important-limits/
-- W3C — WCAG 2.2 target size minimum: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
-- W3C — WCAG 2.2 focus appearance: https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html
+- Laws of UX, a practitioner index of UX laws: https://lawsofux.com/
+- Nielsen Norman Group, 10 usability heuristics: https://www.nngroup.com/articles/ten-usability-heuristics/
+- Nielsen Norman Group, response-time limits: https://www.nngroup.com/articles/response-times-3-important-limits/
+- W3C, WCAG 2.2 target size minimum: https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html
+- W3C, WCAG 2.2 focus appearance: https://www.w3.org/WAI/WCAG22/Understanding/focus-appearance.html
 
 The laws are heuristics. Validate consequential decisions with users, domain evidence, accessibility testing, and the real rendered product.

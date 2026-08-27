@@ -95,11 +95,11 @@ Pixels cannot establish quiet, smell, mattress quality, water pressure, working 
 
 Extract experience promises from the property name and official copy: `boutique`, `design`, `luxury`, `historic`, `spa`, `resort`, `romantic`, `minimalist`, or similar. For promises material to the brief, classify:
 
-- **substantiated** — multiple applicable images consistently support it;
-- **partial** — some images support it, but category/wing inconsistency remains;
-- **marketing-only** — the label is asserted but the visual set does not provide persuasive support;
-- **contradicted** — applicable current imagery directly conflicts with it;
-- **unknown** — coverage is insufficient.
+- **substantiated**: multiple applicable images consistently support it;
+- **partial**: some images support it, but category/wing inconsistency remains;
+- **marketing-only**: the label is asserted but the visual set does not provide persuasive support;
+- **contradicted**: applicable current imagery directly conflicts with it;
+- **unknown**: coverage is insufficient.
 
 Keep operational quality separate from promise fidelity. A clean, friendly guesthouse may be a good stay while failing a design-led boutique brief.
 

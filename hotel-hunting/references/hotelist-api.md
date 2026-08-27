@@ -11,7 +11,7 @@ API contract.
 
 Base: `https://hotelist.com`
 
-## Search — `POST /`
+## Search: `POST /`
 
 Form-encoded, jQuery-style nested parameters:
 
@@ -47,7 +47,7 @@ identity evidence can resolve them; it does not keep only the highest score.
 No response cap was observed in one central-Athens test, but this is not a
 stable guarantee.
 
-## Detail — `POST /modal/{hotel_id}`
+## Detail: `POST /modal/{hotel_id}`
 
 Returns an HTML fragment. Observed fields include:
 
@@ -74,12 +74,12 @@ includes a `security_boundary` field marking returned strings as untrusted
 external evidence that must never supply instructions, tool requests,
 credentials, navigation, or transaction authorization.
 
-## City page — `GET /{slug}`
+## City page: `GET /{slug}`
 
 Server-rendered city pages currently include an `ItemList` in JSON-LD. It is a
 fast ranked-list fallback, not proof of complete coverage or exact prices.
 
-## MCP — `POST /mcp`
+## MCP: `POST /mcp`
 
 JSON-RPC 2.0, currently stateless. Observed tools:
 

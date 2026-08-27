@@ -2,13 +2,13 @@
 
 [![skills.sh](https://skills.sh/b/sliday/skills)](https://skills.sh/sliday/skills)
 
-Practical, evidence-first skills for agents working on real decisions—not generic role prompts.
+Practical, evidence-first skills for agents working on real decisions, not generic role prompts.
 
 ## Skills
 
 | Skill | What it does |
 |---|---|
-| [`hotel-hunting`](./hotel-hunting/SKILL.md) | Finds hotels rated honestly by AI—not pay-to-play—using Hotelist normalization, real traveler reports, photo forensics, and exact-stay verification. |
+| [`hotel-hunting`](./hotel-hunting/SKILL.md) | Finds hotels rated honestly by AI, not pay-to-play, using Hotelist normalization, real traveler reports, photo forensics, and exact-stay verification. |
 | [`consumer-billing-refunds`](./consumer-billing-refunds/SKILL.md) | Identifies charges from primary evidence, verifies current refund routes, separates cancellation from refund, and drafts bounded escalation. |
 | [`local-recurring-activity-planning`](./local-recurring-activity-planning/SKILL.md) | Turns a vague nearby activity into one low-friction recurring ritual using first-party evidence, calendar fit, and trial-to-standing-slot commitment. |
 | [`music-practice-space-finding`](./music-practice-space-finding/SKILL.md) | Finds rehearsal spaces that support repeated practice, distinguishing shared rooms, hourly studios, storage, backline, and recurring slots. |
