@@ -17,6 +17,12 @@ EXTS = (".css", ".scss", ".less", ".html", ".jsx", ".tsx", ".vue", ".svelte")
 DECL = re.compile(r'([a-zA-Z-]+)\s*:\s*([^;:"\'{}]+)')
 PX = re.compile(r'(\d+(?:\.\d+)?)px')
 
+COMMENT = re.compile(r'/\*.*?\*/|<!--.*?-->', re.DOTALL)
+
+def strip_comments(text):
+    # blank out comment bodies, keep newlines so line numbers stay correct
+    return COMMENT.sub(lambda m: re.sub(r'[^\n]', ' ', m.group(0)), text)
+
 def files(targets):
     for t in targets:
         if os.path.isdir(t):
@@ -31,7 +37,7 @@ def files(targets):
 violations = []
 for f in files(sys.argv[1:]):
     try:
-        lines = open(f, errors="replace").read().splitlines()
+        lines = strip_comments(open(f, errors="replace").read()).splitlines()
     except OSError:
         continue
     for i, line in enumerate(lines, 1):
