@@ -131,6 +131,7 @@ Deliver:
 ## Privacy and provenance
 
 - Never emit raw transcripts, tool outputs, credentials, private URLs, or prompt bodies.
+- Write report files with owner-only permissions where the operating system supports them.
 - Show repository basenames, never full home-directory paths.
 - Exact-text deduplicate claude-mem prompts before ranking.
 - Exclude detectable Codex external imports.

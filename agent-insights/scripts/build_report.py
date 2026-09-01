@@ -7,6 +7,8 @@ from typing import Any
 
 HOME=Path.home(); ROOT=HOME/".hermes/cache/agent-insights"
 DEFAULT_HTML=ROOT/"report.html"; DEFAULT_JSON=ROOT/"report-data.json"
+SENSITIVE=[r"sk-[A-Za-z0-9_-]{16,}",r"ghp_[A-Za-z0-9]{20,}",r"github_pat_[A-Za-z0-9_]{20,}",r"xox[baprs]-[A-Za-z0-9-]{10,}",r"AKIA[0-9A-Z]{16}",r"Bearer\s+[A-Za-z0-9._-]{20,}",r"-----BEGIN [A-Z ]*PRIVATE KEY-----",r"(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^\s<]+",r"/Users/[^/\s<]+/",r"/home/[^/\s<]+/",r"[A-Za-z]:\\Users\\[^\\\s<]+\\"]
+FORBIDDEN_JSON_KEYS={"text","content","prompt","prompt_text","transcript","tool_output","response"}
 AUTO=[r"<teammate-message",r"<system-reminder",r"<command-name",r"<command-message",r"=== INSTRUCTIONS",r"^You are ",r"^ROLE:",r"^Task:",r"Output exactly",r"external-import-turn",r"\[OUT-OF-BAND USER MESSAGE"]
 PATTERNS={
  "build / change":r"\b(build|create|implement|add|make|update|fix|change|improve|extend|restore|remove|replace|move|convert|generate)\b|сделай|добавь|исправ|обнови",
@@ -42,6 +44,20 @@ def pname(v:Any)->str:
  if "/" in s or "\\" in s:s=Path(os.path.expanduser(s)).name or s
  return s[:80]
 def stub(name:str,path:Path,kind:str)->dict:return {"name":name,"available":path.exists(),"kind":kind}
+def private_write(path:Path,text:str):
+ path.parent.mkdir(parents=True,exist_ok=True,mode=0o700);path.write_text(text)
+ try:os.chmod(path,0o600)
+ except OSError:pass
+def sensitive_hits(text:str)->list[str]:return [x for x in SENSITIVE if re.search(x,text,re.I)]
+def forbidden_json_paths(value:Any,path:str="$",out:list[str]|None=None)->list[str]:
+ out=[] if out is None else out
+ if isinstance(value,dict):
+  for k,v in value.items():
+   if str(k).lower() in FORBIDDEN_JSON_KEYS:out.append(f"{path}.{k}")
+   forbidden_json_paths(v,f"{path}.{k}",out)
+ elif isinstance(value,list):
+  for i,v in enumerate(value):forbidden_json_paths(v,f"{path}[{i}]",out)
+ return out
 
 def claude(cutoff:float)->dict:
  p=HOME/".claude-mem/claude-mem.db";o=stub("Claude + claude-mem",p,"authored prompts")
@@ -70,21 +86,24 @@ def codex(cutoff:float)->dict:
  recent=[]
  for x in items:
   if (epoch(x.get("updated_at")) or 0)>=cutoff:recent.append(x)
- native=[];imports=templates=0
+ candidates=[];imports=templates=scanned=0
  for x in recent:
   t=clean(x.get("first_user") or x.get("thread_name") or x.get("title"))
   path=Path(os.path.expanduser(x.get("path") or ""))
   imported=False
   if path.is_file():
+   scanned+=1
    try:
     with path.open("rb") as f:imported=b"external-import-turn-" in f.read(2_000_000)
    except OSError:pass
   if imported:imports+=1;continue
   if not candidate(t):templates+=1;continue
-  native.append(x)
- projects=collections.Counter(pname(x.get("cwd") or "(unknown)") for x in native)
- titles=[clean(x.get("thread_name") or x.get("title")) for x in native]
- o.update(recent_index_rows=len(recent),native_non_template_sessions=len(native),imports_excluded=imports,templates_excluded=templates,projects=len(projects),top_projects=[{"name":n,"count":v,"container":n.lower() in CONTAINERS} for n,v in projects.most_common(12)],title_signals={"review":sum(bool(re.search(r"\b(review|audit|validate)\b",t,re.I)) for t in titles),"build":sum(bool(re.search(r"\b(build|create|fix|add|update)\b",t,re.I)) for t in titles)});return o
+  candidates.append(x)
+ projects=collections.Counter(pname(x.get("cwd") or "(unknown)") for x in candidates)
+ titles=[clean(x.get("thread_name") or x.get("title")) for x in candidates]
+ notes=[]
+ if scanned<len(recent):notes.append("raw-session paths unavailable for some rows; import exclusion is partial")
+ o.update(recent_index_rows=len(recent),non_template_candidates=len(candidates),imports_excluded=imports,import_detection_coverage=f"{scanned}/{len(recent)}",templates_excluded=templates,projects=len(projects),top_projects=[{"name":n,"count":v,"container":n.lower() in CONTAINERS} for n,v in projects.most_common(12)],title_signals={"review":sum(bool(re.search(r"\b(review|audit|validate)\b",t,re.I)) for t in titles),"build":sum(bool(re.search(r"\b(build|create|fix|add|update)\b",t,re.I)) for t in titles)},notes=notes);return o
 
 def tree_meta(name:str,path:Path,cutoff:float,kind:str)->dict:
  o=stub(name,path,kind)
@@ -141,8 +160,9 @@ def source_cards(src):
  out=[]
  for s in src.values():
   ok=s.get("available") and not s.get("error");bits=[]
-  for k in ("unique_authored_candidates","native_non_template_sessions","recent_files","recent_wire_sessions","sessions"):
+  for k in ("unique_authored_candidates","non_template_candidates","recent_files","recent_wire_sessions","sessions"):
    if k in s:bits.append(f"{k.replace('_',' ')}: {s[k]:,}")
+  if "import_detection_coverage" in s:bits.append(f"import scan: {s['import_detection_coverage']}")
   out.append(f'<article class="source"><div><h3>{esc(s["name"])}</h3><span class="pill {"ok" if ok else "bad"}">{"available" if ok else "missing"}</span></div><p>{esc(s.get("kind",""))}</p><small>{esc(" · ".join(bits) or s.get("error","no recent data"))}</small></article>')
  return "".join(out)
 def bar_rows(items,total):
@@ -157,18 +177,22 @@ def render(d):
 :root{{--ivory:#FAF9F5;--white:#fff;--slate:#141413;--clay:#D97757;--olive:#788C5D;--rust:#B04A3F;--oat:#E3DACC;--g1:#F0EEE6;--g3:#D1CFC5;--g5:#87867F;--g7:#3D3D3A;--serif:ui-serif,Georgia,serif;--sans:system-ui,-apple-system,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,monospace}}*{{box-sizing:border-box}}body{{margin:0;background:var(--ivory);color:var(--g7);font:15px/1.6 var(--sans)}}main{{max-width:1080px;margin:auto;padding:52px 26px 100px}}header{{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:34px}}h1,h2{{font-family:var(--serif);font-weight:500;color:var(--slate)}}h1{{font-size:48px;line-height:1;margin:8px 0}}h2{{font-size:27px;margin:0}}h3{{margin:0;color:var(--slate);font-size:15px}}.eyebrow,.pill,small,footer{{font-family:var(--mono)}}.eyebrow{{font-size:11px;color:var(--clay);text-transform:uppercase;letter-spacing:.08em}}.muted,small{{color:var(--g5)}}section{{margin-bottom:52px}}hr{{border:0;border-top:1px solid var(--g3);margin:3px 0 20px}}.stats{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}}.stat,.source,.panel,.friction{{background:var(--white);border:1.5px solid var(--g3);border-radius:12px}}.stat{{padding:19px}}.stat b{{display:block;font:500 39px/1 var(--serif);color:var(--slate)}}.stat span{{font:10px var(--mono);text-transform:uppercase}}.thesis{{margin-top:16px;padding:20px;border-left:4px solid var(--clay);background:rgba(217,119,87,.06);font:21px/1.45 var(--serif)}}.sources{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}}.source{{padding:16px}}.source>div{{display:flex;justify-content:space-between;gap:8px}}.source p{{font-size:12px;color:var(--g5)}}.pill{{font-size:9px;padding:3px 7px;border-radius:99px}}.pill.ok{{background:rgba(120,140,93,.16);color:var(--olive)}}.pill.bad{{background:rgba(176,74,63,.12);color:var(--rust)}}.two{{display:grid;grid-template-columns:1fr 1fr;gap:18px}}.panel{{padding:21px}}.bar{{margin:0 0 15px}}.bar>div{{display:flex;justify-content:space-between}}.bar b,.project b{{font:11px var(--mono)}}.bar i,.project i{{display:block;height:7px;background:var(--g1);border-radius:99px;overflow:hidden}}.bar em{{display:block;height:100%;background:var(--clay)}}.bar small{{font-size:9px}}.project{{display:grid;grid-template-columns:1.5fr 3fr 35px;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--g1)}}.project em{{display:block;height:100%;background:var(--oat)}}.frictions{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}}.friction{{display:flex;gap:12px;padding:15px}}.friction>b{{font:500 28px/1 var(--serif);color:var(--rust)}}.friction p{{font-size:11px;color:var(--g5);margin:3px 0}}.rec{{display:grid;grid-template-columns:40px 1fr;gap:13px;padding:18px 0;border-bottom:1px solid var(--g3)}}.rec>strong{{font:11px var(--mono);color:var(--clay)}}.rec code{{display:block;margin-top:9px;padding:12px;background:var(--slate);color:#E8E6DF;border-radius:8px;font:12px/1.5 var(--mono)}}.caveats{{display:grid;grid-template-columns:1fr 1fr;gap:14px}}.caveat{{background:var(--oat);border-radius:12px;padding:17px}}footer{{border-top:1px solid var(--g3);padding-top:18px;font-size:10px;color:var(--g5)}}@media(max-width:800px){{.stats{{grid-template-columns:repeat(2,1fr)}}.sources{{grid-template-columns:1fr 1fr}}.two,.caveats{{grid-template-columns:1fr}}}}@media(max-width:520px){{main{{padding:34px 15px 70px}}header{{display:block}}h1{{font-size:38px}}.sources,.frictions{{grid-template-columns:1fr}}}}
 </style></head><body><main><header><div><div class="eyebrow">Private · aggregate only · no raw transcripts</div><h1>Agent Insights</h1><p class="muted">{start:%b %d, %Y} — {now:%b %d, %Y} · rolling {d["days"]} days</p></div><small>generated {now:%Y-%m-%d %H:%M}</small></header><section><div class="stats"><div class="stat"><b>{n:,}</b><span>authored candidates</span></div><div class="stat"><b>{c.get("sessions",0):,}</b><span>content sessions</span></div><div class="stat"><b>{c.get("projects",0):,}</b><span>project labels</span></div><div class="stat"><b>{sum(f.values()):,}</b><span>friction signals</span></div></div><div class="thesis">This report maps how development work is directed, where correction loops recur, and whether requests for implementation, verification, and shipping stay in balance.</div></section><section><h2>Source coverage</h2><hr><div class="sources">{source_cards(d["sources"])}</div></section><section class="two"><div><h2>How the work is directed</h2><hr><div class="panel">{bar_rows(sorted(p.items(),key=lambda x:x[1],reverse=True),n)}</div></div><div><h2>Project concentration</h2><hr><div class="panel">{proj}</div><p class="muted">Container-like labels are hidden; aliases remain noisy.</p></div></section><section><h2>Friction signals</h2><hr><div class="frictions">{friction}</div></section><section class="two"><div><h2>Requested completion signals</h2><hr><div class="panel">{bar_rows([("build / change",p.get("build / change",0)),("verify / test",p.get("verify / test",0)),("ship / release",p.get("ship / release",0))],n)}</div></div><div><h2>Interpretation boundary</h2><hr><div class="caveat"><strong>Requests are not outcomes.</strong><p>“Test”, “release”, and “deploy” prove intent only. Completion requires repository state, test output, rendered/manual inspection, or live read-back.</p></div></div></section><section><h2>Rules worth trying</h2><hr>{rec}</section><section><h2>What this report will not claim</h2><hr><div class="caveats"><div class="caveat"><strong>Not established</strong><ul><li>One preferred model</li><li>Unconditional autonomy</li><li>That each release happened</li><li>That terse agent feedback describes human relationships</li></ul></div><div class="caveat"><strong>Controls</strong><ul><li>Exact-text dedupe</li><li>Generated templates excluded</li><li>Codex imports excluded where detectable</li><li>No prompt bodies in HTML/JSON</li></ul></div></div></section><footer>Agent Insights v1 · local metadata + authored-prompt candidates · complements Hermes /insights telemetry</footer></main></body></html>'''
 def check(path:Path)->dict:
- t=path.read_text(errors="replace");req=["<!doctype html>","Agent Insights","Source coverage","Friction signals","What this report will not claim"];missing=[x for x in req if x not in t];bad=[x for x in [r"sk-[A-Za-z0-9_-]{16,}",r"ghp_[A-Za-z0-9]{20,}",r"Bearer\s+[A-Za-z0-9._-]{20,}",r"postgres(?:ql)?://[^\s<]+",r"/Users/[^/<]+/(?:Playground|Dropbox|Documents)/"] if re.search(x,t,re.I)];return {"ok":not missing and not bad,"path":str(path),"bytes":len(t.encode()),"missing":missing,"sensitive_pattern_hits":bad}
+ t=path.read_text(errors="replace");req=["<!doctype html>","Agent Insights","Source coverage","Friction signals","What this report will not claim"];missing=[x for x in req if x not in t];bad=sensitive_hits(t);return {"ok":not missing and not bad,"path":str(path),"bytes":len(t.encode()),"missing":missing,"sensitive_pattern_hits":bad}
+def check_json(path:Path)->dict:
+ try:data=json.loads(path.read_text(errors="replace"))
+ except (OSError,json.JSONDecodeError) as e:return {"ok":False,"path":str(path),"error":type(e).__name__}
+ bad=sensitive_hits(json.dumps(data,ensure_ascii=False));keys=forbidden_json_paths(data);return {"ok":not bad and not keys,"path":str(path),"sensitive_pattern_hits":bad,"forbidden_keys":keys}
 def selftest():
- assert candidate("review and test");assert not candidate("<teammate-message> work");assert epoch(1_800_000_000_000)==1_800_000_000;assert pname("/Users/x/Playground/demo")=="demo";print(json.dumps({"ok":True,"tests":4}));return 0
+ assert candidate("review and test");assert not candidate("<teammate-message> work");assert epoch(1_800_000_000_000)==1_800_000_000;assert pname("/Users/x/Playground/demo")=="demo";assert sensitive_hits("token ghp_abcdefghijklmnopqrstuvwxyz");assert forbidden_json_paths({"prompt_text":"secret"})==["$.prompt_text"];print(json.dumps({"ok":True,"tests":6}));return 0
 def main():
- a=argparse.ArgumentParser();a.add_argument("--days",type=int,default=30);a.add_argument("--sources",default="claude,codex,gemini,kimi,hermes");a.add_argument("--output",type=Path,default=DEFAULT_HTML);a.add_argument("--json-output",type=Path,default=DEFAULT_JSON);a.add_argument("--open",action="store_true");a.add_argument("--check",type=Path);a.add_argument("--self-test",action="store_true");x=a.parse_args()
+ a=argparse.ArgumentParser();a.add_argument("--days",type=int,default=30);a.add_argument("--sources",default="claude,codex,gemini,kimi,hermes");a.add_argument("--output",type=Path,default=DEFAULT_HTML);a.add_argument("--json-output",type=Path,default=DEFAULT_JSON);a.add_argument("--open",action="store_true");a.add_argument("--check",type=Path);a.add_argument("--check-json",type=Path);a.add_argument("--self-test",action="store_true");x=a.parse_args()
  if x.self_test:return selftest()
  if x.check:
-  q=check(x.check.expanduser());print(json.dumps(q,indent=2));return 0 if q["ok"] else 1
+  q=check(x.check.expanduser());jp=x.check_json.expanduser() if x.check_json else x.check.expanduser().with_name("report-data.json");jq=check_json(jp) if jp.exists() else {"ok":False,"path":str(jp),"error":"not found"};result={"ok":q["ok"] and jq["ok"],"html":q,"json":jq};print(json.dumps(result,indent=2));return 0 if result["ok"] else 1
  if not 1<=x.days<=3650:a.error("--days must be 1..3650")
  now=dt.datetime.now(dt.timezone.utc).timestamp();cut=now-x.days*86400;want={z.strip() for z in x.sources.split(",")};collect={"claude":claude,"codex":codex,"gemini":lambda c:tree_meta("Gemini / Antigravity",HOME/".gemini/antigravity/brain",c,"artifact metadata"),"kimi":kimi,"hermes":hermes};unknown=want-set(collect)
  if unknown:a.error("unknown sources: "+",".join(sorted(unknown)))
- src={k:collect[k](cut) for k in collect if k in want};d={"schema_version":1,"generated_at":now,"cutoff":cut,"days":x.days,"sources":src};d["recommendations"]=recommendations(src.get("claude",{}));out=x.output.expanduser();js=x.json_output.expanduser();out.parent.mkdir(parents=True,exist_ok=True);js.parent.mkdir(parents=True,exist_ok=True);out.write_text(render(d));js.write_text(json.dumps(d,ensure_ascii=False,indent=2));q=check(out);summary={"ok":q["ok"],"report":str(out),"data":str(js),"days":x.days,"sources":{k:{"available":v.get("available",False),"error":v.get("error")} for k,v in src.items()},"validation":q};print(json.dumps(summary,ensure_ascii=False,indent=2));
- if x.open and q["ok"]:webbrowser.open(out.as_uri())
- return 0 if q["ok"] else 1
+ src={k:collect[k](cut) for k in collect if k in want};d={"schema_version":1,"generated_at":now,"cutoff":cut,"days":x.days,"sources":src};d["recommendations"]=recommendations(src.get("claude",{}));out=x.output.expanduser();js=x.json_output.expanduser();private_write(out,render(d));private_write(js,json.dumps(d,ensure_ascii=False,indent=2));q=check(out);jq=check_json(js);valid=q["ok"] and jq["ok"];summary={"ok":valid,"report":str(out),"data":str(js),"days":x.days,"sources":{k:{"available":v.get("available",False),"error":v.get("error")} for k,v in src.items()},"validation":{"html":q,"json":jq}};print(json.dumps(summary,ensure_ascii=False,indent=2));
+ if x.open and valid:webbrowser.open(out.as_uri())
+ return 0 if valid else 1
 if __name__=="__main__":raise SystemExit(main())
