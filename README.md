@@ -13,6 +13,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 | [`local-recurring-activity-planning`](./local-recurring-activity-planning/SKILL.md) | Turns a vague nearby activity into one low-friction recurring ritual using first-party evidence, calendar fit, and trial-to-standing-slot commitment. |
 | [`music-practice-space-finding`](./music-practice-space-finding/SKILL.md) | Finds rehearsal spaces that support repeated practice, distinguishing shared rooms, hourly studios, storage, backline, and recurring slots. |
 | [`agent-visual-verification`](./agent-visual-verification/SKILL.md) | Gives coding agents a trustworthy screenshot-evidence path and verifies the full capture-to-inspection chain. |
+| [`agent-insights`](./agent-insights/SKILL.md) | Analyzes local development-agent activity across Claude, Codex, Gemini, Kimi, claude-mem, and Hermes without exporting raw transcripts. |
 | [`ux-ui-ia`](./ux-ui-ia/SKILL.md) | Designs and reviews information architecture, flows, controls, accessibility, and visual systems. 18 UX laws as diagnostic lenses, an 8px spacing grid, atomic token-to-component composition, a 54-row visual symptom-to-fix index, plus grid/craft audit scripts and a PostToolUse design-guard hook. |
 
 ## Install
