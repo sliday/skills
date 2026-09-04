@@ -14,6 +14,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 | [`music-practice-space-finding`](./music-practice-space-finding/SKILL.md) | Finds rehearsal spaces that support repeated practice, distinguishing shared rooms, hourly studios, storage, backline, and recurring slots. |
 | [`agent-visual-verification`](./agent-visual-verification/SKILL.md) | Gives coding agents a trustworthy screenshot-evidence path and verifies the full capture-to-inspection chain. |
 | [`agent-insights`](./agent-insights/SKILL.md) | Analyzes local development-agent activity across Claude, Codex, Gemini, Kimi, claude-mem, and Hermes without exporting raw transcripts. |
+| [`ui-capitalization`](./ui-capitalization/SKILL.md) | Ends capitalization drift in UI copy. Picks one of three modes (sentence-first, hybrid, title-first) with the Apple, Chicago, AP, and APA title-case rules, locks a regional English (US, UK, CA, AU, NZ), and ships `capcheck.py` to audit i18n files for mode, duplicate casings, and locale spelling. |
 | [`ux-ui-ia`](./ux-ui-ia/SKILL.md) | Designs and reviews information architecture, flows, controls, accessibility, and visual systems. 18 UX laws as diagnostic lenses, an 8px spacing grid, atomic token-to-component composition, a 54-row visual symptom-to-fix index, plus grid/craft audit scripts and a PostToolUse design-guard hook. |
 
 ## Install
