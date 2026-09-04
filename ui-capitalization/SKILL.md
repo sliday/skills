@@ -68,7 +68,9 @@ python3 scripts/capcheck.py --mode hybrid --locale en-GB \
 
 Report the counts. A 60/40 split is a decision to make. A 95/5 split is a cleanup, and proposing the losing mode wastes the team's time.
 
-With `--mode` set, the script reports errors (mode conformance, duplicate casings, ALL CAPS, trailing periods) and warnings (locale spelling, honorifics, date order). It exits 1 on any error, so it works as a CI gate or a pre-commit hook.
+With `--mode` set, the script reports errors (mode conformance, duplicate casings, ALL CAPS, trailing periods) and warnings (locale spelling, honorifics, date order). It exits 1 on any error, so it works as a CI gate or a pre-commit hook. Add `--strict` to fail on warnings too, once the locale is settled and you want spelling drift blocked as well.
+
+It reads JSON and YAML i18n files (YAML needs PyYAML, and says so when missing) or newline-delimited text on stdin. ICU plural and select forms are stripped whole, so `{n, plural, one {# file} other {# files}}` contributes no words. A file named for another language (`fr.json`, `pt_BR.yml`) gets the language-neutral checks only: title case is an English convention, and applying it to French copy would be wrong.
 
 Two things it cannot know, and you must supply:
 

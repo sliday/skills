@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """capcheck: audit UI strings for capitalization mode and locale consistency.
 
-Stdlib only. Reads i18n JSON files (flat or nested) or newline-delimited text.
+Stdlib only for JSON and text. YAML needs PyYAML and degrades with a warning
+when it is absent. Reads i18n files flat or nested, or newline-delimited text.
 
     python3 capcheck.py --detect locales/en.json
     python3 capcheck.py --mode hybrid --locale en-GB locales/en.json
@@ -112,7 +113,9 @@ CHROME_HINTS = ("button", "btn", "cta", "action", "submit", "confirm", "cancel",
                 "title", "heading", "header", "nav", "tab", "menu", "link",
                 "column", "col", "toolbar", "breadcrumb", "step", "card")
 
-PLACEHOLDER_RE = re.compile(r"\{[^}]*\}|%\d*\$?[sdf]|%\([^)]*\)s|\$\{[^}]*\}")
+PLACEHOLDER_RE = re.compile(r"%\d*\$?[sdf]|%\([^)]*\)s")
+NON_ENGLISH_RE = re.compile(
+    r"^(?!en([-_][a-z]{2,4})?$)([a-z]{2})([-_][a-z]{2,4})?$")
 TAG_RE = re.compile(r"</?[a-zA-Z][^>]*>")
 MD_LINK_RE = re.compile(r"\[([^\]]*)\]\([^)]*\)")
 US_DATE_RE = re.compile(r"\bMM/DD/(YY|YYYY)\b|\bM/D/(YY|YYYY)\b")
@@ -125,12 +128,51 @@ SEVERITY_ORDER = {"error": 0, "warn": 1, "info": 2}
 # Helpers
 # --------------------------------------------------------------------------
 
+def strip_braces(text):
+    """Drop balanced {...} groups, nesting included.
+
+    ICU plural and select forms nest: `{n, plural, one {# file} other {# files}}`.
+    A non-greedy regex stops at the first inner `}` and leaves `other }` behind,
+    which then reads as real words. Match depth instead.
+    """
+    out = []
+    depth = 0
+    for ch in text:
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            if depth:
+                depth -= 1
+                out.append(" ")
+        elif depth == 0:
+            out.append(ch)
+    return "".join(out)
+
+
 def clean(text):
     """Strip placeholders, tags, and markdown link targets."""
     text = MD_LINK_RE.sub(r"\1", text)
+    text = strip_braces(text)
     text = PLACEHOLDER_RE.sub(" ", text)
     text = TAG_RE.sub(" ", text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def known_acronym(c, allow):
+    """Listed acronym, not merely a word in capitals."""
+    return c in ACRONYMS or c in allow or c.lower() in allow
+
+
+def all_known_acronyms(text, allow):
+    ws = [core(w) for w in words_of(text)]
+    ws = [w for w in ws if w]
+    return bool(ws) and all(known_acronym(w, allow) for w in ws)
+
+
+def is_english_source(path):
+    """False for locale files of other languages (fr.json, pt_BR.yml)."""
+    stem = os.path.splitext(os.path.basename(path))[0].lower()
+    return not NON_ENGLISH_RE.match(stem)
 
 
 def core(word):
@@ -344,11 +386,30 @@ def load(paths, use_stdin):
                 continue
             with open(path, "r", encoding="utf-8") as fh:
                 raw = fh.read()
+            if not is_english_source(path):
+                print("note: %s looks like a non-English locale file. Case rules "
+                      "are English rules, so only the neutral checks run on it."
+                      % path, file=sys.stderr)
             if path.endswith(".json"):
                 try:
                     data = json.loads(raw)
                 except json.JSONDecodeError as exc:
                     print("warning: %s is not valid JSON (%s)" % (path, exc), file=sys.stderr)
+                    continue
+                found = []
+                walk_json(data, "", found)
+                items.extend((path, k, v) for k, v in found)
+            elif path.endswith((".yml", ".yaml")):
+                try:
+                    import yaml  # optional, not stdlib
+                except ImportError:
+                    print("warning: %s needs PyYAML (pip install pyyaml). Skipped."
+                          % path, file=sys.stderr)
+                    continue
+                try:
+                    data = yaml.safe_load(raw)
+                except yaml.YAMLError as exc:
+                    print("warning: %s is not valid YAML (%s)" % (path, exc), file=sys.stderr)
                     continue
                 found = []
                 walk_json(data, "", found)
@@ -490,7 +551,8 @@ def check(items, mode, locale, style, label_variant, allow):
         kind = classify(key, text)
         row = {"source": source, "key": key, "text": text}
 
-        if stripped.isupper() and len(stripped) > 3 and stripped not in ACRONYMS:
+        if stripped.isupper() and len(stripped) > 3 \
+                and not all_known_acronyms(text, allow):
             findings.append(dict(row, severity="error", rule="all-caps",
                                  detail="use CSS text-transform, keep the source cased"))
 
@@ -501,8 +563,10 @@ def check(items, mode, locale, style, label_variant, allow):
                                  detail="controls and labels take no final period"))
 
         # A stray period demoted this string to prose, so its case verdict
-        # would be wrong. Drop the period and re-run instead.
-        want = None if stray_period else expected_case(kind, mode, label_variant)
+        # would be wrong. Drop the period and re-run instead. Case rules are
+        # English rules, so other languages get the neutral checks only.
+        want = None if (stray_period or not is_english_source(source)) \
+            else expected_case(kind, mode, label_variant)
         if want == "title":
             bad = title_case_errors(text, style, allow)
             if bad:
@@ -513,7 +577,7 @@ def check(items, mode, locale, style, label_variant, allow):
             if bad:
                 findings.append(dict(row, severity="error", rule="sentence-case",
                                      detail="; ".join("%s %s" % (w, why) for w, why in bad)))
-        elif kind == "unknown":
+        elif kind == "unknown" and is_english_source(source):
             findings.append(dict(row, severity="info", rule="unclassified",
                                  detail="key gives no element type, review by hand"))
 
@@ -549,7 +613,8 @@ def report(findings, counts, total, as_json, quiet):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description="Audit UI strings for capitalization consistency.")
-    p.add_argument("paths", nargs="*", help="JSON i18n files, text files, or globs")
+    p.add_argument("paths", nargs="*",
+                   help="JSON or YAML i18n files, text files, or globs")
     p.add_argument("--stdin", action="store_true", help="read newline-delimited strings")
     p.add_argument("--mode", choices=["sentence", "hybrid", "title"], help="target mode")
     p.add_argument("--detect", action="store_true", help="report the current split, judge nothing")
@@ -561,6 +626,8 @@ def main(argv=None):
     p.add_argument("--allow", help="file of terms to leave alone, one per line")
     p.add_argument("--json", action="store_true", dest="as_json")
     p.add_argument("--quiet", action="store_true", help="summary only")
+    p.add_argument("--strict", action="store_true",
+                   help="exit 1 on warnings too (locale spelling, punctuation)")
     args = p.parse_args(argv)
 
     if not args.paths and not args.stdin:
@@ -593,7 +660,8 @@ def main(argv=None):
     findings = check(items, args.mode, args.locale, args.title_style,
                      args.label_variant, allow)
     report(findings, None, len(items), args.as_json, args.quiet)
-    return 1 if any(f["severity"] == "error" for f in findings) else 0
+    fails = {"error", "warn"} if args.strict else {"error"}
+    return 1 if any(f["severity"] in fails for f in findings) else 0
 
 
 if __name__ == "__main__":

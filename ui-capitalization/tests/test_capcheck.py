@@ -94,6 +94,51 @@ def test_brand_only_ever_first_needs_the_allowlist():
     assert cc.sentence_case_errors("Open Northwind now", proper, {"northwind"}) == []
 
 
+# -- placeholder and acronym handling ---------------------------------------
+
+def test_icu_plural_and_select_are_stripped_whole():
+    # Nested braces: a non-greedy regex leaves "other }" behind as real words.
+    assert cc.clean("{count, plural, one {# document} other {# documents}} Ready") \
+        == "Ready"
+    assert cc.clean("{gender, select, male {He} female {She} other {They}} replied") \
+        == "replied"
+    assert cc.clean("You have {count, plural, one {1 item} other {# items}} left") \
+        == "You have left"
+
+
+def test_icu_string_gets_no_phantom_findings():
+    items = [("f", "a.description", "You have {n, plural, one {1 file} other {# files}} left")]
+    assert run(items, mode="hybrid") == []
+
+
+def test_simple_placeholders_still_strip():
+    assert cc.clean("Hello {name}, you have %d messages") == "Hello , you have messages"
+
+
+def test_acronym_only_string_is_not_all_caps_noise():
+    items = [("f", "a.label", "PDF, CSV"), ("f", "b.button", "SAVE CHANGES")]
+    found = [f for f in run(items) if f["rule"] == "all-caps"]
+    assert len(found) == 1 and found[0]["text"] == "SAVE CHANGES"
+
+
+# -- non-English sources ----------------------------------------------------
+
+def test_non_english_source_detection():
+    assert cc.is_english_source("locales/en.json")
+    assert cc.is_english_source("locales/en-GB.json")
+    assert cc.is_english_source("src/messages.json")
+    assert not cc.is_english_source("locales/fr.json")
+    assert not cc.is_english_source("locales/pt_BR.yml")
+
+
+def test_non_english_file_skips_case_rules_keeps_neutral_ones():
+    items = [("locales/fr.json", "a.button", "Créer Un Compte"),
+             ("locales/fr.json", "b.button", "ENVOYER MAINTENANT")]
+    found = rules(run(items, mode="sentence"))
+    assert "sentence-case" not in found  # English rules do not apply
+    assert "all-caps" in found           # language neutral
+
+
 # -- classification ---------------------------------------------------------
 
 def test_classify():
@@ -210,6 +255,17 @@ def test_zip_code_vocabulary():
 
 
 # -- end to end -------------------------------------------------------------
+
+def test_strict_promotes_warnings_to_failure():
+    data = {"settings": {"a": {"description": "Customize your colors"}}}
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "en.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+        assert cc.main(["--mode", "sentence", "--locale", "en-GB", "--quiet", path]) == 0
+        assert cc.main(["--mode", "sentence", "--locale", "en-GB", "--strict",
+                        "--quiet", path]) == 1
+
 
 def test_main_exit_codes():
     clean = {"actions": {"save": {"button": "Save Changes"}},
