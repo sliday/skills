@@ -8,6 +8,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 
 | Skill | What it does |
 |---|---|
+| [`anonymizer`](./anonymizer/SKILL.md) | Redacts personal details locally from text and images with OpenAI Privacy Filter, opaque image masks, and optional consent-gated GPT Image 2.5 finishing. |
 | [`hotel-hunting`](./hotel-hunting/SKILL.md) | Finds hotels rated honestly by AI, not pay-to-play, using Hotelist normalization, real traveler reports, photo forensics, and exact-stay verification. |
 | [`consumer-billing-refunds`](./consumer-billing-refunds/SKILL.md) | Identifies charges from primary evidence, verifies current refund routes, separates cancellation from refund, and drafts bounded escalation. |
 | [`local-recurring-activity-planning`](./local-recurring-activity-planning/SKILL.md) | Turns a vague nearby activity into one low-friction recurring ritual using first-party evidence, calendar fit, and trial-to-standing-slot commitment. |
