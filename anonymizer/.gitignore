@@ -4,3 +4,5 @@ __pycache__/
 .env
 private/
 outputs/
+# Raw upstream embeds allowlisted credential examples; never vendor it.
+references/gitleaks-upstream.toml

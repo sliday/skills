@@ -49,7 +49,9 @@ def main():
     hardened, count = harden(raw.decode())
     refs = ROOT / 'references'
     refs.mkdir(exist_ok=True)
-    (refs / 'gitleaks-upstream.toml').write_bytes(raw)
+    # Raw upstream contains allowlisted example credentials. Keep it in memory
+    # only: publishing it creates secret-scanning alerts. Provenance retains its
+    # source URL and SHA-256 without distributing the credential examples.
     (refs / 'gitleaks-redaction.toml').write_text(hardened)
     (refs / 'GITLEAKS-LICENSE').write_text(license_text)
     provenance = {'repository': 'https://github.com/gitleaks/gitleaks', 'commit': sha,

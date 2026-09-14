@@ -27,6 +27,10 @@ The current Replicate Sunburst docs expose `prompt`, `input_images`, `quality`, 
 - Level selection must change category policy, not only confidence thresholds. A live Q2 email test classified both a launch date and a project file identifier as privacy categories at near-certain confidence. Low excludes private dates/URLs but still masks model-classified account numbers; document this semantic false positive rather than overfit an exception.
 - Compare removal AND preservation. A screenshot with all text hidden does not demonstrate a successful selective default.
 
+## Safe rule vendoring
+
+Keep raw upstream config in memory only. Gitleaks allowlists embed example credential values that GitHub secret scanning can flag even though they are unused by this project. Publish only the stripped-down redaction rules, upstream license, source URL/revision and checksum. Never vendor raw allowlists or suppress GitHub scanning to hide this class of problem. The updater regression test verifies that allowlist values never reach published files.
+
 ## Non-goals
 
 No compliance certification, face recognition, guaranteed multilingual recall, secure erasure of originals, automatic folder scans, PDF redaction, stable pseudonyms, or automatic publication. No guarantees against background/contextual re-identification. Manual region selection is required for faces, plates, signatures, QR/barcodes, and visual details not captured by OCR.

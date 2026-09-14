@@ -6,7 +6,7 @@
   "latest_release": "v8.30.1",
   "latest_release_url": "https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1",
   "source_url": "https://raw.githubusercontent.com/gitleaks/gitleaks/b58d3f102cf3a2c84cb7f923d05c25c9b1aed84b/config/gitleaks.toml",
-  "fetched_at": "2026-09-14T12:27:46.631317+00:00",
+  "fetched_at": "2026-09-14T13:58:15.516308+00:00",
   "sha256": "e163e53b9e7e8a8511e77271e2b323ed057759542a6d988258afe3a1fa329caf",
   "regex_rules": 221,
   "policy": "No allowlists, entropy gates, keyword prefilters, paths, or dependent-rule restrictions"

@@ -58,7 +58,7 @@ Before sensitive work, when public-network access is permitted, refresh current 
 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-The updater resolves the latest default-branch HEAD, retrieves config/license at that exact commit, and records release, SHA, checksum and fetch time in `references/gitleaks-provenance.json`. The initial snapshot has 221 rules. Offline, disclose the pinned snapshot date rather than calling it latest.
+The updater resolves the latest default-branch HEAD, retrieves config/license at that exact commit, and records release, SHA, checksum and fetch time in `references/gitleaks-provenance.json`. Keep raw config in memory only: its allowlists contain credential examples that must not be vendored. Publish only stripped-down rules, license and provenance. The initial snapshot has 221 rules. Offline, disclose the pinned snapshot date rather than calling it latest.
 
 Go/RE2 rules are executed with Gitleaks, not mistranslated into Python. Redaction config removes allowlists, entropy gates, path/keyword/dependent-rule suppression. Ignore comments and ambient config cannot disable scanning. Raw findings stay in memory. No provider calls validate credentials. Recursive encoded-secret decoding is disabled because decoded offsets cannot safely map to source text; inspect obfuscated/encoded secrets separately. Preserve upstream license attribution. Rotate already-exposed keys—redaction does not revoke them.
 

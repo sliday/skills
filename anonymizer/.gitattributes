@@ -1,2 +1,0 @@
-# Preserve upstream bytes so the recorded checksum remains verifiable.
-references/gitleaks-upstream.toml whitespace=-blank-at-eof
