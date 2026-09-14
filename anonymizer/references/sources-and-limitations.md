@@ -17,6 +17,16 @@ The current Replicate Sunburst docs expose `prompt`, `input_images`, `quality`, 
 - Treat cloud cosmetics as a new untrusted artifact; generation can relocate or invent details. Reinspect and apply irreversible redaction again.
 - Keep low-signal logs and neutral filenames. No entity reverse map, raw OCR text, or raw provider errors should escape by default.
 
+## Selective defaults and preservation lessons
+
+- Default to low, selective removal. Do not treat whole panels or all OCR text as personal data; high/all-text is explicit opt-in.
+- Assemble complete BIOES entities before confidence gating. Redacting only high-scoring sub-tokens can expose a suffix of a name or credential.
+- Preserve field labels, punctuation and non-user path components. Credentials and explicit literals override preservation so secrets embedded in paths are still masked.
+- Map to hOCR character boxes rather than whole OCR words; this preserves most of a filename/path when only its username segment is sensitive.
+- Upscale small screenshot text for local OCR and transform boxes back to original pixels with conservative rounding. Review remains necessary: small UI names can be missed even at 2×.
+- Level selection must change category policy, not only confidence thresholds. A live Q2 email test classified both a launch date and a project file identifier as privacy categories at near-certain confidence. Low excludes private dates/URLs but still masks model-classified account numbers; document this semantic false positive rather than overfit an exception.
+- Compare removal AND preservation. A screenshot with all text hidden does not demonstrate a successful selective default.
+
 ## Non-goals
 
-No compliance certification, face recognition, automatic contextual image PII selection, guaranteed multilingual recall, secure erasure of originals, automatic folder scans, PDF redaction, stable pseudonyms, or automatic publication. No guarantees against background/contextual re-identification. Manual region selection is required for faces, plates, signatures, QR/barcodes, and visual details not captured by OCR.
+No compliance certification, face recognition, guaranteed multilingual recall, secure erasure of originals, automatic folder scans, PDF redaction, stable pseudonyms, or automatic publication. No guarantees against background/contextual re-identification. Manual region selection is required for faces, plates, signatures, QR/barcodes, and visual details not captured by OCR.

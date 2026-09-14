@@ -3,7 +3,8 @@
 
 Boxes are integer pixel coordinates in the EXIF-oriented image, half-open:
 [x1, x2) by [y1, y2). All boxes must fit the image. OCR masks every detected
-word, NOT every actual word: detection can miss text. Review output and add
+word only in high mode. Low/medium use contextual PII-to-character alignment.
+Detection can miss text. Review output and add
 manual boxes for missed text, faces, codes, avatars, or other identifiers.
 No face/QR detector is included. --full-image is the fail-safe blanket mask.
 Existing outputs are refused. Input bytes remain untouched. Only fresh RGB PNG
@@ -101,7 +102,8 @@ def ocr_boxes(image, padding=4, tesseract="tesseract"):
 
 
 def redact_image(input_path, output_path, boxes=None, *, all_text=False,
-                 full_image=False, padding=4, tesseract="tesseract"):
+                 full_image=False, padding=4, tesseract="tesseract", level=None,
+                 offline=False, engine="privacy-filter", literals=()):
     source, target = Path(input_path), Path(output_path)
     if source.resolve() == target.resolve():
         raise RedactionError("Input and output must be different files.")
@@ -114,8 +116,15 @@ def redact_image(input_path, output_path, boxes=None, *, all_text=False,
         raise RedactionError("OCR padding must be a nonnegative integer.")
     image = load_rgb(source)
     rectangles = validate_boxes([] if boxes is None else boxes, image.size)
-    if all_text and not full_image:
+    if level not in (None, "low", "medium", "high"):
+        raise RedactionError("Invalid redaction level.")
+    if (all_text or level == "high") and not full_image:
         rectangles.extend(validate_boxes(ocr_boxes(image, padding, tesseract), image.size))
+    elif level in ("low", "medium") and not full_image:
+        from selective_ocr import selective_boxes
+        detected = selective_boxes(image, level=level, offline=offline, engine=engine,
+                                   literals=literals, padding=padding, tesseract=tesseract)
+        rectangles.extend(validate_boxes(detected, image.size))
     if full_image:
         rectangles = [(0, 0, *image.size)]
     if not rectangles:
@@ -134,7 +143,9 @@ def redact_image(input_path, output_path, boxes=None, *, all_text=False,
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
-    return {"masked_regions": len(rectangles), "width": image.width, "height": image.height}
+    return {"masked_regions": len(rectangles), "width": image.width, "height": image.height,
+            "level": "full-image" if full_image else "high" if all_text else level or "manual",
+            "review_required": True}
 
 
 class SafeParser(argparse.ArgumentParser):
@@ -149,7 +160,13 @@ def main(argv=None):
     parser.add_argument("--boxes", help="Local JSON file of half-open oriented pixel rectangles")
     parser.add_argument("--all-text", action="store_true", help="Mask words detected by local OCR (may miss text)")
     parser.add_argument("--full-image", action="store_true", help="Mask the entire image")
-    parser.add_argument("--padding", type=int, default=4, help="OCR padding in pixels (default: 4)")
+    parser.add_argument("--level", choices=("low", "medium", "high"), default="low",
+                        help="Low (default) preserves context; medium broadens PII; high masks all OCR text")
+    parser.add_argument("--offline", action="store_true", help="Require cached Privacy Filter weights")
+    parser.add_argument("--engine", choices=("privacy-filter", "patterns"), default="privacy-filter")
+    parser.add_argument("--extra-literals", help="Private JSON array of additional exact values to mask")
+    parser.add_argument("--manual-only", action="store_true", help="Apply only supplied boxes; no automatic detection")
+    parser.add_argument("--padding", type=int, help="OCR padding: low=1, medium=2, high=4 pixels")
     parser.add_argument("--tesseract", default="tesseract", help="Local tesseract executable")
     args = parser.parse_args(argv)
     try:
@@ -157,8 +174,19 @@ def main(argv=None):
         if args.boxes:
             with open(args.boxes, encoding="utf-8") as handle:
                 boxes = json.load(handle)
+        if args.manual_only and (args.all_text or not args.boxes):
+            raise RedactionError("Manual-only mode requires boxes and cannot use all-text.")
+        literals = []
+        if args.extra_literals:
+            with open(args.extra_literals, encoding="utf-8") as handle:
+                literals = json.load(handle)
+            if not isinstance(literals, list) or any(not isinstance(v, str) or not v.strip() for v in literals):
+                raise RedactionError("Extra literals must be a nonempty-string array.")
+        level = None if args.manual_only else "high" if args.all_text else args.level
+        padding = args.padding if args.padding is not None else {"low": 1, "medium": 2}.get(level, 4)
         result = redact_image(args.input, args.output, boxes, all_text=args.all_text,
-                              full_image=args.full_image, padding=args.padding, tesseract=args.tesseract)
+                              full_image=args.full_image, padding=padding, tesseract=args.tesseract,
+                              level=level, offline=args.offline, engine=args.engine, literals=literals)
     except RedactionError as exc:
         print("error: " + str(exc), file=sys.stderr)
         return 2

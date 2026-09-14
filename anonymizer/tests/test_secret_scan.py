@@ -8,8 +8,9 @@ import unittest
 
 ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
+from unittest.mock import patch
 from secret_scan import secret_spans
-from text_redact import redact
+from text_redact import redact, detect_spans, LEVELS
 
 # Entirely synthetic, constructed examples. Never validate against provider APIs.
 PAYLOAD = 'A1b2C3d4E5f6G7h8I9j0K1l2M3n4P5q6'
@@ -67,6 +68,57 @@ class SecretTests(unittest.TestCase):
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertNotIn(PAYLOAD, p.stdout + p.stderr + output.read_text())
             self.assertTrue(json.loads(p.stdout)['review_required'])
+
+    def test_value_only_with_punctuation_all_levels(self):
+        examples = [
+            ('API key: "short-but-private".', 'API key: "[REDACTED]".'),
+            ("client_secret='private value with spaces';", "client_secret='[REDACTED]';"),
+            ('My password is SomethingPrivate123.', 'My password is [REDACTED].'),
+            ('CUSTOM_API_KEY="short-but-private"', 'CUSTOM_API_KEY="[REDACTED]"'),
+            ('Authorization: Bearer ' + PAYLOAD + '.', 'Authorization: Bearer [REDACTED].'),
+            ('Authorization: "Basic ' + PAYLOAD + '";', 'Authorization: "Basic [REDACTED]";'),
+            ('{"password": "punctuated!secret?"}', '{"password": "[REDACTED]"}'),
+        ]
+        for level in LEVELS:
+            for text, expected in examples:
+                with self.subTest(level=level, text=text[:20]):
+                    self.assertEqual(redact(text, detect_spans(text, level, engine='patterns'))[0], expected)
+
+    def test_unicode_offsets_exact(self):
+        token = CASES['replicate']
+        text = '🌿 Анна: "' + token + '"; again ' + token
+        spans = detect_spans(text, engine='patterns')
+        first = text.index(token)
+        last = text.rindex(token)
+        self.assertEqual(spans, [(first, first + len(token)), (last, last + len(token))])
+
+    def test_scanner_missing_fails(self):
+        with patch('secret_scan.shutil.which', return_value=None):
+            with self.assertRaises(RuntimeError):
+                secret_spans('password=secret')
+
+    def test_scanner_failure_fails(self):
+        with patch('secret_scan.subprocess.run', return_value=subprocess.CompletedProcess([], 2, b'', b'')):
+            with self.assertRaises(RuntimeError):
+                secret_spans('hello')
+
+    def test_cli_defaults_low_and_explicit_levels(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / 'in.txt'
+            source.write_text('Read https://docs.python.org/3/ on 2026-09-14. password="private-value"')
+            for level in [None, 'medium', 'high']:
+                output = Path(directory) / (str(level) + '.txt')
+                command = [sys.executable, str(ROOT / 'scripts/text_redact.py'), '--input', str(source),
+                           '--output', str(output), '--engine', 'patterns']
+                if level:
+                    command += ['--level', level]
+                proc = subprocess.run(command, capture_output=True, text=True)
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                self.assertEqual(json.loads(proc.stdout)['level'], level or 'low')
+                result = output.read_text()
+                self.assertNotIn('private-value', result)
+                self.assertIn('password="[REDACTED]"', result)
+                self.assertEqual('https://docs.python.org/3/' in result, level != 'high')
 
 if __name__ == '__main__':
     unittest.main()
