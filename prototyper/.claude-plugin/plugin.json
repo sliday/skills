@@ -1,0 +1,12 @@
+{
+  "name": "prototyper",
+  "version": "1.0.0",
+  "description": "Local discovery, focused prototype building and visual A/B review with a reusable team handoff.",
+  "author": {
+    "name": "Stas Kulesh",
+    "url": "https://sliday.com"
+  },
+  "homepage": "https://book.sliday.com/prototype/",
+  "license": "MIT",
+  "skills": "./"
+}
