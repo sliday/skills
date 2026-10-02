@@ -1,10 +1,10 @@
 ---
 name: prototyper
-description: Use when you need to define and build a website, app or service prototype through local discovery, fixed acceptance criteria, visual A/B review and evidence-based repair, then hand it to a design or development team.
+description: Use when you need to build a usable proof of concept of the main user flows, with interactive mocks for supporting services, observable acceptance checks and a focused MVP handoff.
 license: MIT
 metadata:
   author: Sliday
-  version: "1.0.0"
+  version: "1.1.0"
   mutating: "true"
 ---
 
@@ -18,13 +18,19 @@ Choose the first useful outcome the client can complete: book a slot, prepare a 
 
 Give the client a verified way to open the prototype, a sample task and a visible result. Explain what persists, what resets and which actions use live services or simulations. Prefer a local or browser-only route when it meets the task without account setup. Use a manual step when it provides a usable outcome within scope, and include that step in the instructions. Show the first working route before expanding scope or adding tooling.
 
+## Mock supporting services
+
+Build the main user flows through to observable results. Default to mocks for supporting services unless the client requests a live integration or the risky assumption depends on that integration. A checkout can simulate approval, decline and retry without Stripe. An email flow can show a message preview or local outbox without sending mail. Let the user interact with these states; a dead button does not demonstrate the flow.
+
+Label simulated effects where the user encounters them: no charge, no email sent, sample account or local-only save. A PoC can meet its acceptance bar with these mocks. For an MVP launch, identify which dependencies must become real to deliver the promised user outcome and which can remain simulated or manual. Record the remaining integration work without expanding the current prototype into a full product.
+
 ## Define the task
 
 Read [mindset](references/mindset.md) to identify the user, situation, current workaround and risky assumption. Ask only for information that changes the prototype. Accept free text, reconsider after each answer and surface contradictions. Follow the client's request to proceed with reversible assumptions when appropriate.
 
 For a resumable survey, read [local discovery](references/discovery.md) and run `scripts/discovery.py` from the client project. It saves answers in local SQLite and exports JSON, `PRD.md` and `BAR.md`. It uses no AI provider or remote database. A chat-only agent can perform discovery in conversation. PLEA remains an optional requirements interview; this survey adapts its discovery principles rather than claiming to run that plugin.
 
-Write one direction: for this user in this situation, help them finish this task; test this assumption. Choose one end-to-end route and exclusions. Use [scope](references/scope.md), including its worked example when useful. A prototype can test understanding and behaviour; it cannot establish demand or production reliability by itself.
+Write one direction: for this user in this situation, help them finish this task; test this assumption. Agree the small set of main flows needed for that task, and name exclusions. Map each flow as role → action → observable result. Build one end-to-end route as the first increment, then include the agreed supporting flows before accepting the PoC. Use [scope](references/scope.md), including its worked example when useful. A prototype can test understanding and behaviour; it cannot establish demand or production reliability by itself.
 
 ## Build through the quality loop
 
@@ -36,7 +42,15 @@ Read [build-loop](references/build-loop.md) before implementation. Keep it centr
 4. When a meaningful comparator exists, show matched reference/previous and current artifacts under neutral A/B labels to a separate critic. Give the authorized critic the actual artifact, task and bar without builder history. Otherwise inspect directly against the bar and record the comparison limit. For nonvisual solutions, inspect actual outputs and task execution.
 5. Record `VERDICT`, the largest `GAP` and concrete `EVIDENCE`. Repair that gap and rerun affected checks against the same bar. Keep failed and untested criteria visible.
 
-Stop when required criteria pass or the agreed budget ends. Default to three review/repair cycles when the client supplies no budget; do not call an unfinished result accepted. Stop on a quota/rate-limit error or three attempts at the same tool failure. Label self-review when a separate critic is unavailable and mark checks untested when you cannot execute them. An agent's A/B preference is a heuristic comparison, not a participant experiment.
+Continue until required criteria pass, the client stops, or an explicit budget ends. Do not impose a fixed round count or call an unfinished result accepted. Stop on a quota/rate-limit error or three attempts at the same tool failure. Label self-review when a separate critic is unavailable and mark checks untested when you cannot execute them. An agent's A/B preference is a heuristic comparison, not a participant experiment.
+
+## Show progress to the client
+
+Use [the progress board](references/progress-board.md) when the client wants a view of development. It runs locally and shows outcome cards in Planned, Building, Ready to try and Done, with child boards, breadcrumbs and highlighted feedback requests. Keep card statuses aligned with `PLAN.md` and verified evidence. Read client answers before advancing dependent work; retain open questions and failed checks. Use the bundled board to start without accounts or hosting.
+
+## Run the bundled evals
+
+Read [evals](evals/README.md). Run the bundled behaviour checks after changing discovery or progress-board code. Check the rendered board with its browser eval when you change UI behaviour. Keep synthetic evaluation projects separate from client data, retain failed evidence and mark unavailable browser checks untested. A passing helper-tool eval does not prove the client's prototype meets its own `BAR.md`.
 
 ## Leave a usable handoff
 

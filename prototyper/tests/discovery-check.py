@@ -107,7 +107,15 @@ class DiscoveryAcceptance(unittest.TestCase):
         brief = self.store.export(identifier)['PRD.md']
         self.assertIn('Updated owner', brief)
         self.assertNotIn('Only phone', brief)
-        self.assertIn('Unknown. Discuss this before implementation.', brief)
+        self.assertIn('Record a reversible assumption and proceed', brief)
+        self.assertNotIn('Discuss this before implementation', brief)
+        self.assertIn('interactive mocks for supporting services', brief)
+        self.assertIn('Agreed main flows', brief)
+        bar = self.store.export(identifier)['BAR.md']
+        self.assertIn('VERDICT: pass, fail or untested', bar)
+        self.assertIn('Exercise each agreed main flow', bar)
+        self.assertIn('Contact participants only when the owner authorizes outreach', bar)
+        self.assertNotIn('- [ ] Observe the intended user', bar)
         self.assertEqual(state['answers']['constraints']['status'], 'skipped')
         self.assertEqual(self.request('/api/projects/' + identifier + '/delete', {})[0], 200)
         self.assertEqual(self.request('/api/projects/' + identifier)[0], 404)

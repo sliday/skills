@@ -54,10 +54,16 @@ Reuse the project's harness before adding one. Consult Harn's current documentat
 
 Configure hooks only within the authorized project scope. Check the target agent's hook protocol, command paths, dependencies and output before enabling them. Bound hook runtime and retries, prevent recursive stop hooks, and treat a missing or skipped checker as unverified. A passing lint or type check does not replace rendered inspection, task execution or user feedback. Exclude private discovery answers and credentials from shared traces and handoff files.
 
+## Adapt Matt Pocock's workflow skills
+
+The [Matt Pocock collection](https://github.com/mattpocock/skills) provides deeper guidance for task slicing, behaviour-focused testing, domain vocabulary and agent handoffs. Prototyper adapts those ideas: write small outcomes the client can demonstrate, attach observable checks, record decisions in the client's terms, and point the next team to current artifacts.
+
+Read a selected skill when its workflow fits the task. Preserve the client's tracker and tooling. Some skills assume an issue tracker, external publication, repository-wide setup or a throwaway prototype; those assumptions do not expand this prototype's scope or permissions. Keep resumable client work and verified first use as the goal.
+
 ## Choose and verify fonts
 
 Use [Google Fonts](https://fonts.google.com/) for a purposeful display or body family when the prototype needs it. Check the family, weights, character coverage and licence. Limit families and weights, use `display=swap`, and test a fallback without the font service. Respect the project's self-hosting and content security policy. Follow the [Google Fonts API guide](https://developers.google.com/fonts/docs/getting_started) for web loading; an API key is not required for a CSS font stylesheet.
 
 ## Run an evidence-based review loop
 
-The [Gauntlet Loop](https://somethingbig.ai/gauntlet-loop) pairs a builder with a separate critic and a concrete comparison bar. This pack adapts that method to a prototype build loop with an agreed budget, defaulting to three repair cycles. Compare real artifacts, prove the input harness works, fix one largest gap and retain failed checks. Use neutral A/B labels and matching viewport, state and content when a comparison permits them. Check the visual result after a material UI change. If no independent critic or rendering tool exists, report that limit. A review loop improves evidence; it does not establish customer demand or guarantee release quality.
+The [Gauntlet Loop](https://somethingbig.ai/gauntlet-loop) pairs a builder with a separate critic and a concrete comparison bar. Continue until the required criteria pass, the client stops or an explicit budget ends; do not impose a fixed round count. Compare real artifacts, prove the input harness works, fix one largest gap and retain failed checks. Use neutral A/B labels and matching viewport, state and content when a comparison permits them. Check the visual result after a material UI change. If no independent critic or rendering tool exists, report that limit. A review loop improves evidence; it does not establish customer demand or guarantee release quality.

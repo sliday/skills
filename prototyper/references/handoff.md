@@ -2,6 +2,8 @@
 
 Inspect the artifact and existing instructions before preparing the handoff. Preserve the client's stack, files and ownership choices. Deliver the runnable artifact alongside a concise brief, not a replacement implementation.
 
+Reference the current PRD, plan, board export and evidence by path instead of copying their content into competing records. Give the next team the task in progress, unresolved client decisions, the next concrete step and its check.
+
 Use [../assets/handoff-template.md](../assets/handoff-template.md) for the brief. Fill it with actual project details; remove unused sections. Do not fabricate links, screenshots, commands or verification. Mark unknowns with their next check.
 
 Include the minimum a receiving team needs:
@@ -9,7 +11,7 @@ Include the minimum a receiving team needs:
 - User, task, risky assumption and current scope.
 - Artifact location, requirements and exact launch instructions you verified. Include a first-use walkthrough with a sample task, expected result, synthetic-data setup and reset if relevant.
 - Key screens or steps, with screenshots only when you captured them. Otherwise describe them as a screen inventory.
-- Live and mocked boundaries, persistence behavior and inactive controls.
+- Live and mocked boundaries, persistence behavior and inactive controls. For each mocked service, name the demonstrated states and the integration or manual step needed for the intended MVP launch. Distinguish PoC acceptance from launch readiness.
 - Decisions worth retaining, known gaps and prioritized next cuts.
 - PRD, fixed BAR, proof-bearing PLAN and cycle ledger from build-loop guide, with criterion status, artifact evidence and reviewer type.
 - Verification performed and feedback gathered, with failures and untested cases; label agent A/B comparisons separately from actual user experiments.

@@ -1,4 +1,4 @@
-# Make one task work
+# Make the main flows work
 
 Start from the client's user, job and risky assumption. If they have not chosen them, extract them from the request and mark assumptions. Keep their stack, existing project and scope choices. Use the simplest available implementation that lets someone finish the task.
 
@@ -6,11 +6,11 @@ If the product remains unclear, offer a short discovery conversation inspired by
 
 Use build-loop guide to turn this scope into PRD.md, a fixed BAR.md and a PLAN.md of proof-bearing tasks. Keep those artifacts as copyable sections when file tools are unavailable. Build and repair against that bar until criteria pass or the agreed budget ends.
 
-Define the journey from entry to an observable result. Include the screens, state changes and data needed along that route. Use realistic synthetic records, including a case that is missing data or fails validation. Identify these records as synthetic.
+Agree a small main-flow set and name excluded flows. Map each included flow as role → action → observable result. Use one route for the first working increment, then complete the agreed supporting flows before accepting the PoC. Define each journey from entry to an observable result. Include the screens, state changes and data needed along that route. Use realistic synthetic records, including a case that is missing data or fails validation. Identify these records as synthetic.
 
 Build the primary route plus the failure states that affect the task: an empty starting state, invalid input, a failed operation and a retry or recovery. Include loading when an operation has a wait. Check keyboard operation, labels and clear errors. Keep important controls functional; label any decorative or inactive control.
 
-Remove features that do not test the assumption or complete the route. Put useful extras in a short “later” list, without implementing them. Account creation, payments and integrations belong in the prototype only when the task needs them.
+Remove features that do not test the assumption or complete the route. Put useful extras in a short “later” list, without implementing them. A flow that includes payment, email or account creation does not require the corresponding live service. Default to an interactive mock with the states needed to test the task. Connect a real service when the client requests it or the assumption depends on its actual behaviour.
 
 Label each boundary: live service, local persistence, simulated response or static placeholder. If you simulate a payment, message or upload, show that nothing leaves the prototype. Do not claim a mocked route proves the live integration works.
 

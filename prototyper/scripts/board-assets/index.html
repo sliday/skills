@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="__CSRF__">
+  <title>Your prototype · Progress</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23485944'/%3E%3Cpath d='M10 11h8v8h-8zm12 0h8v8h-8zm-12 12h8v8h-8zm12 0h8v8h-8z' fill='%23faf8f3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/daub.css">
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#board-heading">Skip to tasks</a>
+  <div class="page-shell">
+    <header class="project-header">
+      <div class="project-identity">
+        <span class="project-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        <div class="project-intro">
+          <p class="eyebrow">Your prototype / Progress</p>
+          <h1 id="project-name">Your prototype</h1>
+          <p id="project-summary" class="project-summary">Follow the work and share decisions with your team.</p>
+        </div>
+      </div>
+      <div class="project-actions">
+        <a id="prototype-link" class="db-btn db-btn--primary" target="_blank" rel="noopener noreferrer" hidden>Try your prototype <span aria-hidden="true">↗</span></a>
+        <span id="prototype-pending" class="prototype-pending">Your team will share a link to try.</span>
+        <div class="connection-meta"><span id="connection-dot" class="connection-dot" aria-hidden="true"></span><span id="connection-status">Connecting to your project</span></div>
+        <time id="last-updated" class="last-updated"></time>
+      </div>
+    </header>
+    <div id="demo-notice" class="demo-notice" hidden><span class="notice-symbol" aria-hidden="true">◇</span><div><strong>Demonstration project</strong><p>These tasks show how the board works. Your answers here only affect this example.</p></div></div>
+    <div id="load-error" class="load-error" role="alert" hidden><div><strong id="load-error-title">We couldn’t load your progress.</strong><p id="load-error-message"></p></div><button id="retry-load" class="db-btn db-btn--secondary" type="button">Retry</button></div>
+    <main id="main-content">
+      <nav id="breadcrumbs" class="breadcrumbs" aria-label="Task path"></nav>
+      <div class="board-toolbar">
+        <div class="board-intro"><h2 id="board-heading" tabindex="-1">All work</h2><p id="board-description">Open a task to see its details and the work inside.</p></div>
+        <div class="board-controls">
+          <div class="view-switch" role="group" aria-label="Board view"><button id="all-work-filter" type="button" aria-pressed="true">All work</button><button id="needs-you-filter" type="button" aria-pressed="false">Needs you <span id="needs-you-count" class="filter-count">0</span></button></div>
+          <button id="show-details" class="db-btn db-btn--secondary db-btn--sm" type="button" hidden>Task details</button>
+        </div>
+      </div>
+      <div id="workspace" class="workspace">
+        <section id="board-region" aria-label="Development tasks" aria-busy="true">
+          <div id="board-notice" class="board-notice" hidden></div>
+          <div id="loading-state" class="loading-state" role="status"><span class="db-spinner db-spinner--sm" aria-hidden="true"></span><span>Loading your progress…</span></div>
+          <div id="task-board" class="task-board"></div>
+        </section>
+        <aside id="task-detail" class="task-detail" aria-labelledby="detail-title" hidden></aside>
+      </div>
+    </main>
+    <footer class="page-footer"><span><span class="local-symbol" aria-hidden="true">▣</span> Progress and saved answers stay in this project’s folder.</span><span>Team updates appear here while this page is open.</span></footer>
+  </div>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+  <noscript><p class="noscript-message">Enable JavaScript to view tasks and answer your team’s questions.</p></noscript>
+</body>
+</html>

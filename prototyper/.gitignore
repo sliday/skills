@@ -1,3 +1,5 @@
 __pycache__/
 *.pyc
 .prototype-discovery/
+
+.prototype-progress/

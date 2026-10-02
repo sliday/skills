@@ -4,6 +4,8 @@ Identify the assumption and the task the prototype can test. Inspect the artifac
 
 Write a neutral task with a concrete starting situation and desired result. Do not reveal the interface's intended path in the instructions. Ask the participant to try it before you explain it. Let the client choose whom to involve; do not contact people on their behalf without authorization.
 
+For a tool-verified task, record the starting state, the user action and the resulting state. Verify persistence when the task promises it, and check console or server errors when available. Keep each run's sample data, server and evidence paths separate from client data. Retain the evidence after stopping the test server.
+
 Capture the context that makes feedback interpretable: participant's relevant experience, version tested, device, task, assistance given and whether data was synthetic. Keep identifying information out of the handoff unless the participant agreed to its use.
 
 Separate four evidence types:
@@ -17,7 +19,7 @@ Never turn an agent persona or a conversational walkthrough into real-user evide
 
 ## Quality loop and A/B evidence
 
-Use build-loop guide as the central build/review/repair workflow: PRD, fixed BAR, proof-bearing PLAN, actual artifact review and the largest-gap repair. Run visual checks after material interface changes. Continue until required criteria pass or the agreed budget ends, with three cycles as the default limit. Preserve failed and untested criteria at a stop.
+Use build-loop guide as the central build/review/repair workflow: PRD, fixed BAR, proof-bearing PLAN, actual artifact review and the largest-gap repair. Run visual checks after material interface changes. Continue until required criteria pass, the client stops or an explicit budget ends. Preserve failed and untested criteria at a stop.
 
 For visual comparisons, use neutral A/B labels and matched viewport, state and content. Compare the current version with a reference or previous version when available. Keep version identity and builder history from an authorized independent critic. Report the criterion and artifact evidence behind a preference. Label self-review, supplied-evidence review and nonblind comparisons. An agent's preference does not establish human conversion, demand or usability outcomes.
 

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "revision": 1,
+  "updated_at": "2026-10-01T21:27:47+00:00",
+  "project": {
+    "name": "Quote helper demonstration",
+    "summary": "Synthetic tasks show how you can follow work and answer team questions. No live prototype exists in this example.",
+    "demo": true,
+    "prototype_url": null
+  },
+  "tasks": [
+    {
+      "id": "quote-flow",
+      "parent_id": null,
+      "title": "Create a quote (demo)",
+      "description": "Synthetic work: add an item, check the price and choose a delivery format.",
+      "status": "building",
+      "evidence": [],
+      "feedback": {
+        "question": "How should a customer receive the quote?",
+        "why": "Your sample answer changes the delivery step in this demonstration.",
+        "choices": [
+          {
+            "id": "link",
+            "label": "Shareable link"
+          },
+          {
+            "id": "file",
+            "label": "PDF attachment"
+          }
+        ],
+        "answer": null
+      }
+    },
+    {
+      "id": "quote-items",
+      "parent_id": "quote-flow",
+      "title": "Add work items (demo)",
+      "description": "Synthetic child board for entering the work and its price.",
+      "status": "building",
+      "evidence": [],
+      "feedback": null
+    },
+    {
+      "id": "quote-price",
+      "parent_id": "quote-items",
+      "title": "Check the item total (demo)",
+      "description": "Synthetic third level: review how a quantity affects the total.",
+      "status": "planned",
+      "evidence": [],
+      "feedback": {
+        "question": "Should the customer see the hourly rate?",
+        "why": "This sample decision affects the price display.",
+        "choices": [
+          {
+            "id": "visible",
+            "label": "Show the rate"
+          },
+          {
+            "id": "total",
+            "label": "Show the total only"
+          }
+        ],
+        "answer": null
+      }
+    },
+    {
+      "id": "sample-preview",
+      "parent_id": null,
+      "title": "Review a sample preview (demo)",
+      "description": "This card demonstrates Ready to try. The example contains no working quote prototype.",
+      "status": "ready",
+      "evidence": [
+        "Simulated evidence: a sample user adds an item and sees the total. This illustrates an evidence note; the team has not tested a live quote prototype."
+      ],
+      "feedback": null
+    },
+    {
+      "id": "quote-copy",
+      "parent_id": null,
+      "title": "Name the first action (demo)",
+      "description": "Synthetic completed task used to demonstrate the Done column.",
+      "status": "done",
+      "evidence": [
+        "Simulated decision: the sample first action reads Create a quote."
+      ],
+      "feedback": null
+    },
+    {
+      "id": "quote-delivery",
+      "parent_id": null,
+      "title": "Prepare delivery (demo)",
+      "description": "Synthetic next step that depends on your sample delivery answer.",
+      "status": "planned",
+      "evidence": [],
+      "feedback": null
+    }
+  ]
+}

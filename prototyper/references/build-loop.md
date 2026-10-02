@@ -6,11 +6,13 @@ Use this as the central workflow for a website, app or other solution. Preserve 
 
 Write `PRD.md`: user, job, risky assumption, critical end-to-end task, constraints, synthetic data, live/mocked boundaries and scope cuts. With no file tools, provide the same content as a copyable section.
 
+Define acceptance around the main user flows and observable state changes. A labelled mocked checkout or email preview can satisfy a PoC criterion. Do not add live-service setup or a complete backend to the bar unless the scoped outcome requires it. Record MVP launch dependencies as separate work; a passing simulated flow does not verify those dependencies.
+
 Write `BAR.md` before building: stable criterion IDs, observable pass conditions, how to check each and the necessary device, viewport or execution environment. Include task completion, relevant failure/recovery, honest boundaries and visual/accessibility requirements. For day-one use, check that the client can open the artifact from the supplied instructions, complete the sample task and identify its result. Verify the stated save, reload or reset behavior when the task depends on it. Hold the bar fixed across cycles; record an explicit client scope change before revising it. Do not lower criteria to declare success.
 
-Write `PLAN.md` with small tasks, dependencies and evidence each task must produce. File existence or a successful build proves only that condition. Critical interactions need exercised state transitions; visual criteria need rendered inspection.
+Write `PLAN.md` with small tasks, dependencies and evidence each task must produce. Write tasks as small user outcomes that run from input to result across the necessary layers. A task such as “Save a quote and reopen it” includes the interface, storage and proof needed for that outcome. Avoid splitting progress into isolated “frontend”, “backend” and “database” cards when the client cannot try them. File existence or a successful build proves only that condition. Critical interactions need exercised state transitions; visual criteria need rendered inspection.
 
-Agree a budget or use a default maximum of three review/repair cycles. Record the limit, available tools and reviewer access. A cycle count does not establish quality.
+Record any client-supplied budget, available tools and reviewer access. Continue against the bar without a fixed round count when the client supplies no limit. A cycle count does not establish quality.
 
 ## Repeat against the same bar
 
@@ -22,6 +24,10 @@ Agree a budget or use a default maximum of three review/repair cycles. Record th
 6. Repair the largest gap within scope. Re-run the changed task and affected regression paths, render affected states again, then request the next verdict against the same BAR.
 
 Stop when the required criteria pass, the agreed budget ends, the client stops, or a quota/rate-limit error occurs. Stop after three attempts at the same tool error. At budget exhaustion, hand off the actual result with failed and untested criteria; do not describe it as accepted. Extending a budget requires client agreement.
+
+## Keep progress visible
+
+Use [the progress board](progress-board.md) when useful. Mirror the plan, verified milestones and client decisions in outcome cards. A feedback answer resolves a question; it does not prove the task works. Keep unresolved checks and blocked decisions visible at a stop.
 
 ## Hand off the evidence
 

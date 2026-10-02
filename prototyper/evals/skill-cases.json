@@ -1,0 +1,76 @@
+{
+  "skill_name": "prototyper",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I am a freelance translator. Build a small tool I can use today to quote a job from its word count and price per word. I need to save a quote, reopen it and copy the total into an email. Use sample clients. I do not need accounts or an email integration. I will not answer questions in chat. Show me progress in a board I can understand.",
+      "setup": "Give a fresh coding agent the skill and an empty project directory. Permit local execution and browser checks. Use synthetic data.",
+      "expected_output": "A runnable quote workflow, first-use instructions, an outcome board, acceptance evidence and a team handoff.",
+      "assertions": [
+        "The agent builds and runs an input-to-total route rather than ending with a plan or questionnaire.",
+        "A check confirms 2500 words at 0.125 per word yields 312.50 before currency formatting.",
+        "The agent demonstrates saving, reloading and reopening the same quote without losing its values.",
+        "The copy action works, or a demonstrated manual copy path lets the client complete the task.",
+        "The client receives a clickable working address, sample task and explanation of local storage.",
+        "Outcome cards reflect demonstrated work; unanswered client choices remain visible without fabricated answers.",
+        "The handoff distinguishes synthetic checks, agent review and actual user feedback."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add a usable expense entry prototype to this existing project. I want to enter an amount and category and see my total after reopening the page. Keep this project's stack. Use sample expenses and local data. Build the first route and give my developer instructions to continue it.",
+      "setup": "Prepare a tiny existing project with a working static HTML page, JavaScript file and documented local launch command. Give a fresh coding agent the skill, project and local execution tools. Retain a baseline diff.",
+      "expected_output": "A working expense-entry route in the supplied stack, focused changes, persistence proof and continuation instructions.",
+      "assertions": [
+        "The agent inspects the existing launch path and preserves the supplied stack.",
+        "Entering 12.50 and 7.25 produces 19.75 through the actual interface.",
+        "Reloading retains the expenses, and invalid input produces a recoverable error without changing the valid total.",
+        "The agent avoids unrelated framework migrations, account setup and global hooks.",
+        "Acceptance evidence includes the executed workflow and rendered checks, with unavailable checks marked untested.",
+        "The handoff names the canonical files, run command, data boundary and next concrete task."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Prototype an appointment request form I can try today. Let me enter a sample name and preferred time and see a saved request. Put a decision about confirmation wording on its task card so I can review it while the other work continues. Keep the operation local and explain how it differs from a live booking.",
+      "setup": "Give a fresh coding agent the skill and local execution tools. After the first working route, an evaluator submits synthetic card feedback: use 'Request received' and explain that the team will confirm the time. Ask the agent to apply that feedback, then reapply an older board export. Record the feedback as evaluation input, not human participant feedback.",
+      "expected_output": "A usable local request workflow and a saved card decision that changes the wording without claiming a live booking.",
+      "assertions": [
+        "The agent gives the client a runnable request route before waiting for the wording decision.",
+        "The feedback card and its ancestors show a labelled pending decision that the client can find.",
+        "The evaluator's submitted answer survives reload and stale agent updates.",
+        "The agent reads the saved answer, changes the prototype wording and records proof of the change.",
+        "The agent keeps implementation status separate from the answered question.",
+        "The interface and handoff describe local requests and pending confirmation without claiming a connected calendar or sent message."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Help me prototype a workshop booking idea. In this environment you cannot create files, run a server or open a browser. Give me the most useful result you can and a concrete starting point for a team. Do not assume you collected customer feedback.",
+      "setup": "Use a fresh evaluator environment without execution or browser tools. Give it the skill and prompt text. Check claims against the tools available in that environment.",
+      "expected_output": "A labelled simulation or implementation brief with one task, fixed acceptance criteria, first-use plan and honest untested boundaries.",
+      "assertions": [
+        "The response supplies one scoped booking route and concrete sample input and expected result.",
+        "The agent labels the result as a simulation or brief and does not claim a running app, saved state or inspected screenshot.",
+        "The team receives observable acceptance checks and the next implementation step.",
+        "The response states that no user feedback was collected and marks execution and visual checks untested.",
+        "Optional tools do not become prerequisites for using the brief."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Build a proof of concept for paid workshop bookings. Let a visitor choose a workshop, enter sample details, check out and review a confirmation email. I need to test those main flows before deciding what we need for an MVP launch. I have no Stripe or email-provider setup. Use sample data and proceed without waiting for credentials.",
+      "setup": "Give a fresh coding agent the skill, an empty project and local execution/browser tools. Provide no payment, email or account credentials. Use synthetic records only.",
+      "expected_output": "A runnable main booking flow with interactive mocked checkout and an email preview or local outbox, plus a focused list of MVP launch dependencies.",
+      "assertions": [
+        "The agent builds the selection-to-confirmation flow without requiring Stripe, an email provider or a complete production backend.",
+        "The simulated checkout changes booking state, includes approval and a recoverable decline, and does not charge money.",
+        "The user can inspect confirmation message content without sending an email.",
+        "The interface labels the simulated payment and email effects where the user encounters them.",
+        "The agent exercises the mocked state transitions and reports their evidence without claiming a live payment or delivered email.",
+        "The acceptance bar covers the scoped PoC flows; the handoff names the real integrations or manual steps needed for the intended MVP launch.",
+        "The agent leaves unrelated product features outside the current scope."
+      ]
+    }
+  ]
+}
