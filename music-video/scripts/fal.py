@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/Users/stas/Playground/slopcore/gsb/.venv/bin/python
 """fal.py <endpoint> <input.json> <out_prefix>
 Local file paths in the input (strings, or lists of strings) are uploaded to fal storage once (cached by sha256).
 Logs every job to jobs/jobs.jsonl. Watchdog: FAL_TIMEOUT seconds (default 900) -> cancel + fail."""

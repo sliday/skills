@@ -58,7 +58,7 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 - **SCALE CANON** (relative heights; act-based world scale). Only include it when those characters are in the shot: mentioning bears made bears appear in empty landscapes.
 - **ABSOLUTELY NO <cast>** clause for empty shots. Drop cast sheets from their references and use cast-free style exemplars.
 - **FIRE** = one stylised language (Khokhloma), repeated in the motion prompt so the fire never turns realistic mid-clip.
-- **HOUSE** (distorted naive perspective), **CHURCH** (one church type), **TREE**, **SEASON** (one season until the scripted change), **HAT/COSTUME**, **BOTTLE/PROP SIZE**, **ICON/RELIGIOUS** (only the story's icon), **SEATING** (who drives and who sits where on a vehicle; children never drive), **DETAIL** (match the approved exemplars' simplification), **ANATOMY** (head on neck, limb counts, readable silhouettes; no lying rug-bodies), **VEHICLE/OBJECT** (countable parts), **NO TEXT**.
+- **HOUSE** (distorted naive perspective), **CHURCH** (one church type), **TREE**, **SEASON** (one season until the scripted change), **HAT/COSTUME**, **BOTTLE/PROP SIZE**, **ICON/RELIGIOUS** (only the story's icon), **SEATING** (who drives and who sits where on a vehicle; children never drive), **DETAIL** (match the approved exemplars' simplification), **UNIQUENESS** (each character and key prop exactly once per frame; never riding and carrying a vehicle at once), **ANATOMY** (head on neck, limb counts, readable silhouettes; no lying rug-bodies), **VEHICLE/OBJECT** (countable parts), **NO TEXT**.
 - **When a rule changes, regenerate the anchors first, then their dependents.** Stop any running batch before changing a rule so you don't pay twice.
 
 ## 3. Location continuity (anchors)
@@ -79,10 +79,19 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
   - give the camera move
   - list the actions in numbered order
   - state the end state, the style of motion and what must NEVER happen
-- **fal `minimax/h3-max/reference-to-video`:**
+- **fal `minimax/h3-max/reference-to-video`** (tested on BERLOGA 2):
+  - first frame plus reference video FAILS (`downstream_service_unavailable`); each works alone, and keyframes win
+  - reference-to-video needs at least one reference image
+  - output runs about 0.5 s longer than requested; trim in the renderer
+  - use `prompt_expansion_mode: disabled` with long prompts
   - inputs: `image_url` (first frame), optional `middle_image_url` plus `middle_frame_time`, `end_image_url`
   - references: `reference_image_urls` (sheets, at most 12 files total), `reference_video_urls` (accepted earlier plates as motion references, 2–15 s)
   - cost and resolution: $0.05/s, 768P native, mid frames need native 480P or 768P
+- **Repair, don't regenerate:**
+  - use `fix.py` (gpt-image-2.5-flare) for local defects such as a duplicated prop
+  - flare won the A/B against sunburst, Qwen-Image-Edit-2511 and FLUX Kontext Max
+  - always pass an explicit keep-list, because flare dropped an unlisted Maxim gun
+- **Formats:** JPG keyframes (q94) for video work; PNG only for validator evidence frames.
 - **Skip lip-sync** unless the user asks. OmniHuman synced, but it looked bad on painted characters.
 - **Before regenerating, retime** (0.7–0.9×) to cut a failing last second.
 
@@ -94,7 +103,13 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 - **The user's notes come as single images:** answer each one with a named rule, regenerate exactly the affected shots, and show the before/after.
 - **vid2md** (`~/Playground/vid2md`, `uv run video-watch … --provider openrouter --model google/gemini-2.5-flash --skip-audio`) gives an independent timeline at about $0.1. It's good for catching text and blank frames.
 
-## 8. Delivery
+## 8. Vertical 9:16 (per-shot hybrid, after the 16:9 cut is final)
+1. **Triage:** find the subject box on the 16:9 start frame. If it fits a 9:16 window, use a crop or pan (`vertical.js`). Otherwise recompose.
+2. **Recompose:** edit the approved start, mid and end frames to 9:16 with flare or sunburst ("same characters and poses, extend sky and ground, stack vertically"). Check them as triplets, then animate with h3-max using the same motion prompt. That repeats the performance without duplicating the frame.
+3. **Re-lay effects and typography** for 9:16 in the renderer; never crop text.
+4. **Expect** about 60% of shots to need regeneration, at about 0.6× of the main cut's plate cost.
+
+## 9. Delivery
 - **Encode:** H.264 `yuv420p` tv-range BT.709 faststart, a master and a web copy, the song unaltered, plus a **9:16 recompose** (`vertical.js`, per-shot focus or pan).
 - **Gates:** draft → render_ready → batch_ready → delivery. Approvals are scope-hashed, and evidence frames are PNG. Re-bind the approvals after any prompt change and prove the shot prompts are unchanged when only the assembly changed.
 
