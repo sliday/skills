@@ -123,6 +123,8 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 6. **CONTINUITY:** carried over from the rules: eye state, hats, fire language, "no decorations appear" (h3 painted flowers onto a plain sidecar), nobody enters or leaves.
 7. **STYLE:** a painting coming to life; no text, no photorealism.
 
+**Reveals and uncoverings:** never hide in the start frame what the action will reveal. h3 invents the hidden part and drifts: in BERLOGA 3 c08 the samovar under the tarp inflated, flew up and the flag vanished. Show the object fully on-model, cover only a small part, and add a stillness invariant naming what may move ("ONLY the tarp, the father's arm and the headlamp light change; the trike does not move; no object rises, flies, grows, appears or disappears").
+
 **Keyframe composition for action:** compose the start as the *beginning* of the action, with room for it to happen (trike on the left third with intact houses ahead), never the mid-point.
 
 ## 11. Storyboard board (`board.py`)

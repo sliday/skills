@@ -23,6 +23,8 @@ for sh in P["shots"]:
         move = ("The vehicle is really travelling fast: the camera moves alongside it, so the background trees, houses and hills stream past quickly in the opposite direction with strong parallax, the ground and puddles rush by underneath, the wheels spin, mud and water fly backwards off the tyres, the flag whips. ")
     elif op in ("tracking", "truck_left", "truck_right", "dolly_in", "dolly_out", "zoom_out", "pedestal"):
         move = f"The camera really moves ({pr['camera']['instruction']}) with clear parallax between near and far layers. "
+    EXTRA = {"c08": "ONLY the tarpaulin cloth, the father's arm and the headlamp light change. The war-trike does not move at all and every part of it stays exactly as in the opening frame: same samovar at the same size and place, same banner, same pipes; no object rises, flies, grows, appears or disappears. The mother stands still holding the icon."}
+    if sid in EXTRA: cont.insert(0, EXTRA[sid])
     end = sh["prompt"]["end"]
     prompt = (f"OPENING FRAME, exactly what is painted: {cap} "
               f"CAMERA: {pr['camera']['instruction']}. "
