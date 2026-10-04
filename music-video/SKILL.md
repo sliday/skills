@@ -125,6 +125,10 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 
 **Reveals and uncoverings:** never hide in the start frame what the action will reveal. h3 invents the hidden part and drifts: in BERLOGA 3 c08 the samovar under the tarp inflated, flew up and the flag vanished. Show the object fully on-model, cover only a small part, and add a stillness invariant naming what may move ("ONLY the tarp, the father's arm and the headlamp light change; the trike does not move; no object rises, flies, grows, appears or disappears").
 
+**Throws, launches, shots:** the projectile starts IN the hand or barrel in the start frame, never mid-air. A mid-air object stays suspended or drifts (BERLOGA 3 c13). State the physics: "the arm swings, it leaves the paw, one short arc under gravity, it lands and disappears; it never hovers". For mortars, the shell leaves along the barrel's axis.
+
+**Stylised effects that grow** (Khokhloma fire): describe growth as the ornament unfolding ("grows by unfurling more flat painted flame-leaves") and give a modest scale ("about twice"). "Three times taller" pushed h3 into realistic flame tongues.
+
 **Keyframe composition for action:** compose the start as the *beginning* of the action, with room for it to happen (trike on the left third with intact houses ahead), never the mid-point.
 
 ## 11. Storyboard board (`board.py`)

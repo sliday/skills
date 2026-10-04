@@ -4,7 +4,7 @@ import json, hashlib, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sha = lambda p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
 STYLE = (ROOT / "bibles/STYLE.txt").read_text().strip()
-SHEET = {"family": "bibles/char/oil_family.jpeg", "moth": "bibles/char/moth_fix.jpeg", "trike": "bibles/char/trike_clean.jpeg", "world": "bibles/char/oil_world.jpeg", "samovar": "bibles/char/samovar_v2.jpeg"}
+SHEET = {"family": "bibles/char/oil_family.jpeg", "moth": "bibles/char/moth_fix.jpeg", "trike": "bibles/char/trike_khokh.jpeg", "world": "bibles/char/oil_world.jpeg", "samovar": "bibles/char/samovar_v2.jpeg"}
 STYLE_REFS = ["bibles/char/library.jpeg", "source/refs/style/s1_bears_bed.png"]
 SHEET_DESC = {"family": "the bear family and cat character sheet", "moth": "the moth model sheet (the one moth in all its formats, including the sky-covering super-moth)", "trike": "the war-trike model sheet (one exact vehicle from five angles)", "samovar": "the samovar and top-mortar props sheet (ignore the realistic bear in it; bears come only from the family sheet)", "world": "the world sheet (Rozh, Jesus-airplane, onion churches, elephants, flying man, trees, houses, tiny people)"}
 CAST = {
@@ -67,9 +67,9 @@ S = [
   None, "the machine gun is fully out of the cellar on the wet path, the cat sitting beside it backwards, looking over its shoulder, unimpressed",
   ["the cat heaves backwards step by step", "the Maxim gun rolls out of the dark cellar doorway", "the cat sits down beside it, glancing back over its shoulder"], None),
  ("c08", 34.2, 37.7, ["sb05"], ["big", "she"], True, ["family", "trike"], ("locked", "static wide"),
-  "Among dark flame-shaped trees in the rain the FATHER and MOTHER bears pull a big olive tarpaulin off the WAR-TRIKE, which is parked by the den; the mother holds the glowing icon under one arm",
-  None, "the tarpaulin lies on the ground and the war-trike stands revealed, its eye-like headlamp switched on and glowing",
-  ["the bears pull the tarp, which slides off the trike", "the eye-like headlamp flickers on"], None),
+  "Wide side view in the rain by the den: the WAR-TRIKE stands parked in the centre, facing right, completely on-model and clearly visible (samovar fuel tank, round headlamp unlit, handlebars, three exhaust pipes, knobbly wheels, red banner); ONLY its seat, sidecar tub and bagel crate are covered by one loose, sagging olive canvas tarpaulin. The FATHER bear stands at the LEFT, behind the trike, holding the back corner of the tarp in one paw; the MOTHER bear stands at the RIGHT, holding the glowing moth icon against her chest with both paws",
+  None, "the tarpaulin lies crumpled on the mud behind the trike; the trike is unchanged and fully uncovered; its round headlamp is now lit",
+  ["the father bear pulls the tarp straight backwards off the seat and sidecar and drops it on the mud behind the trike", "the trike's round headlamp switches on"], None),
  ("c09", 37.7, 41.62, ["sb05"], ["big", "she", "cub", "cat", "moth"], True, ["family", "trike", "moth"], ("locked", "static wide"),
   "Everyone mounted on the WAR-TRIKE in the dark forest: FATHER driving, MOTHER behind him holding the glowing moth icon, the CUB in the sidecar with his balalaika, the CAT sitting BACKWARDS on the sidecar nose behind the Maxim gun",
   None, "grey exhaust smoke puffs from the organ-pipe exhausts and the trike lurches forward a little",
@@ -86,9 +86,9 @@ S = [
   None, "a long path of broken, toppled trees behind the trike; the animals gone",
   ["trees topple one after another", "the deer and squirrels bolt out of frame to the right", "the empty bottle spins away"], "clips/v1/b13_h3.mp4"),
  ("c13", 51.77, 56.31, ["sb10", "sb17"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
-  "By the forest road at night: the bears on the parked trike laugh and burp beside a roadside campfire painted as flat Khokhloma ornament fire; the CUB tosses an empty bottle into it; heavy rain falls INTO the fire",
-  None, "the Khokhloma ornament fire has grown three times taller, fed by the rain, curling red-and-gold flame-leaves towering over the trike",
-  ["the bottle lands in the fire", "every raindrop that hits the fire makes the ornamental flames swell and curl higher", "the bears throw their heads back laughing"], None),
+  "By the forest road at night: the bears on the parked trike laugh and burp beside a roadside campfire painted as flat Khokhloma ornament fire; the CUB stands by the fire holding an empty bottle high in his raised paw, about to throw it, the bottle still in his paw (nothing in the air yet); heavy rain falls INTO the fire",
+  None, "the Khokhloma ornament fire has grown about twice as tall, still a flat painted pattern of red-and-gold flame-leaves and berries",
+  ["the cub throws the bottle: it leaves his paw, flies in a short low arc and drops into the fire", "the ornament fire grows about twice as tall by unfurling more flat painted Khokhloma flame-leaves and berries while the bears throw their heads back laughing"], None),
  ("c14", 56.31, 65.52, ["sb10", "sb14"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("truck_right", "very slow lateral camera drift to the right"),
   "The bears have climbed off the trike at a forest clearing in the rain: the FATHER drinks from his bottle and smokes a thin cigarette, the MOTHER holds the glowing icon, the CUB sits on a stump; a curious deer and two squirrels approach from the right",
   (0.5, "the father bear swats at the deer with a huge paw and the mother bear stamps her foot at the squirrels; the animals recoil in fright"),
@@ -217,7 +217,7 @@ LOC_NOTE = {"den_in": "the den interior: dark plank walls, the black rug with sy
             "village": "the tiny village of distorted houses and onion churches at the giant bears' feet", "burning_hills": "the burning hills under a red stormy sky",
             "sleep": "the muddy ash field where the bears fall asleep around the war-trike"}
 LOC_OF = {sid: loc for loc, ids in LOC.items() for sid in ids}
-TRIKE_RULE = (" TRIKE RULE: the war-trike is ALWAYS exactly the vehicle on the war-trike model sheet: heavy olive-green riveted motorcycle with the sidecar on its RIGHT, rust patches, small spikes on the mudguards, huge knobbly tyres, the Khokhloma samovar as fuel tank, ONE round worried-eye headlamp, tall curved handlebars with a small striped top hanging, exactly THREE tall rusty organ-pipe exhausts behind the seat, a crate of bagels and two plain bottles on the sidecar rear, a plain torn red banner on a pole; never another vehicle shape.")
+TRIKE_RULE = (" TRIKE RULE: the war-trike is ALWAYS exactly the vehicle on the war-trike model sheet: heavy olive-green riveted motorcycle with the sidecar on its RIGHT, rust patches, small spikes on the mudguards, huge knobbly tyres, the Khokhloma samovar as fuel tank, ONE round worried-eye headlamp, tall curved handlebars with a small striped top hanging, exactly THREE tall rusty organ-pipe exhausts behind the seat, a crate of bagels and two plain bottles on the sidecar rear, a plain torn red banner on a pole; the SIDECAR's outer side panel and the front mudguard are painted with a Khokhloma ornament panel (black lacquer, scarlet berries, curling gold leaves, thin gold edge), the rest plain olive steel; NO stars painted anywhere on the body; never another vehicle shape.")
 SAMOVAR_RULE = (" SAMOVAR RULE: there is exactly ONE samovar design, exactly as on the samovar props sheet: round brass belly painted with Khokhloma red berries and golden leaves on black, brass crown chimney, curled brass handles, brass tap, four curled legs; on the war-trike it is the fuel tank between handlebars and seat; as a flamethrower it is carried by its handles with a long straight brass spout on its tap. TOP-MORTAR: a short fat brass mortar on a Khokhloma-painted wooden base firing striped red-gold-black spinning-top shells that burst into flat Khokhloma fire-flowers; a shell always leaves the muzzle STRAIGHT ALONG THE AXIS OF THE BARREL, continuing the barrel line exactly (pointed tip first), never at an angle to it, with smoke puffing along the same line.")
 MOTH_RULE = (" MOTH RULE: the moth (and the moth in the icon) is always EXACTLY the moth from the moth model sheet: pale grey-brown triangular wings with the same dark zig-zag bands, furry pale thorax, long segmented abdomen, two long feathery antennae, two tiny dark eyes, no mouth; never a butterfly, never a bat; the icon frame is ornate gold, red and green enamel.")
 HANDOFF = {
