@@ -23,6 +23,11 @@ for sid in [a for a in sys.argv[1:] if not a.startswith("--")]:
             (B + "/source/refs/style/s1_bears_bed.png", "a second STYLE painting, smooth glazed oil")]
     refs += [(p, d) for kws, p, d in SHEETS if any(k in low for k in kws)]
     p = M[sid]["prompt"]
+    OV = json.load(open("docs/motion_override.json")) if os.path.exists("docs/motion_override.json") else {}
+    if sid in OV:  # replace the TIMELINE ... THROUGHOUT block with a directed beat sheet
+        i0 = p.index("TIMELINE: "); i1 = p.index("THROUGHOUT: ")
+        p = p[:i0] + "TIMELINE: " + OV[sid]["timeline"] + " " + p[i1:]
+        p = p.replace("CONTINUITY: ", "CONTINUITY: " + OV[sid].get("continuity", ""), 1)
     i = p.index("THE OPENING FRAME shows: "); j = p.index("Anything frozen mid-motion")
     p = p[:i] + "THE OPENING FRAME shows: " + (cap if len(cap) <= 900 else cap[:900].rsplit(" ", 1)[0] + "...") + " " + p[j:]
     names = " ".join(f"Image {k+1} is {d}." for k, (_, d) in enumerate(refs))

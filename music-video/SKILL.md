@@ -149,6 +149,8 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 
 **Crowds that flee or move:** paint every figure in the start frame facing the direction it will travel, mid-stride. Pin the direction in the motion prompt as well: "they run forward in the direction they face, never backwards". Calm figures facing the threat get moved away by walking backwards (BERLOGA 3 c19).
 
+**Witnesses must act:** when something happens to a prop or creature (the moth leaving the icon), direct how every onlooker *reacts* in the beat sheet: turn heads, lean back, follow with eyes, point, raise the object. Otherwise h3 animates only the event and the onlookers stay static (BERLOGA 3 c27). Re-state persistent states (green eyes, background fires) inside the reaction beats themselves; extreme expressions (mouths open in awe) otherwise wipe them. `docs/motion_override.json` + `plate_refs.py` swap a directed TIMELINE into the generated prompt.
+
 **Throws, launches, shots:** the projectile starts IN the hand or barrel in the start frame, never mid-air. A mid-air object stays suspended or drifts (BERLOGA 3 c13). State the physics: "the arm swings, it leaves the paw, one short arc under gravity, it lands and disappears; it never hovers". For mortars, the shell leaves along the barrel's axis.
 
 **Stylised effects that grow** (Khokhloma fire): describe growth as the ornament unfolding ("grows by unfurling more flat painted flame-leaves") and give a modest scale ("about twice"). "Three times taller" pushed h3 into realistic flame tongues.
