@@ -114,6 +114,20 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 | Reference video as motion guide | fal h3-max: incompatible with a first frame. Skip. |
 | Pinning the last frame | Only for real state changes the model can't infer (autumn to winter). Even then, describe it in text first. |
 
+**Hold-then-act / act-then-freeze (measured, BERLOGA 3):** a caption-first prompt that ends with an end state makes h3 hold the opening tableau, compress the action into about 1 s, then freeze on the end state. 15 of 40 plates had a static head or a frozen tail of 2–5.5 s. Fix the prompt order:
+1. `"A single continuous N-second shot IN MOTION from the very first to the very last frame: no hold at the start, no freeze at the end"`.
+2. A **TIMELINE** of timed beats spread across the whole clip (`0.0-2.2s: …; 2.2-5.0s: …`).
+3. "and by N s: <end state> while the movement still continues".
+4. **THROUGHOUT:** ambient motion (rain, banner, fire sway).
+5. Camera.
+6. A *shortened* caption of the opening frame (≤900 chars), placed after the action.
+7. Continuity, then style.
+8. **Calm shots** (sleep, mourning, close-ups) open with "LOCKED-OFF CAMERA ON A TRIPOD: the framing never changes (no zoom, no push-in)". Otherwise the "in motion" mandate gets spent on a strong push-in.
+
+**Measure motion, don't eyeball it:** `motion_profile.py` gives mean frame difference per 0.5 s for each plate and flags late starts. `plate_motion.py` writes `docs/plate_plan.json`: per shot it trims only the static head and frozen tail, keeps the whole active span, and fits it to the slot (speed 0.85–1.35×). The renderer plays `offset + t·k`. Don't maximise peak motion: that skips action starts.
+
+**Story-state overrides beat global rules:** "eyes glow green from t≥19 s" must yield to "asleep: eyes closed" in the sleep shots. Rules keyed only on time contradict scene state.
+
 **Motion prompt recipe** (`motion.py`, about 2.5–4k chars, h3 follows long prompts):
 1. **OPENING FRAME:** a *literal* description of what is painted. Gemini 2.5 Flash via OpenRouter captions every start frame (`caption.py`), left to right: characters, poses, held props, eye colour, objects, light, weather, anything frozen mid-motion. Without it the model guesses and drifts.
 2. **CAMERA:** one move. For vehicles, **spell out the parallax**: "the background streams past in the opposite direction, ground rushes by, wheels spin, mud flies backwards". Otherwise h3 renders a parked vehicle in front of a static backdrop.
@@ -146,7 +160,7 @@ Scene IDs are not enough. Keep a **HANDOFF** table of physical state per shot: w
 - **Model sheets get fixed by whole redraws** when a panel is broken (the moth peel-off panel survived three edits). Fix props by sheet *edits* that keep the layout (mortar shell along the barrel axis).
 
 ## 14. Process lessons
-- **Wait loops:** `while pgrep -f "tools/pool.py"` matches its own shell command line and never exits. Wait on a PID file, or use `pgrep -f "^python3 tools/pool.py"`.
+- **Wait loops:** `while pgrep -f "tools/pool.py"` matches its own shell command line and never exits, and `^python3` never matches because the process shows the resolved Python binary path. Wait on the PID (`while kill -0 $PID`) or a done-file.
 - **Two pools must not overlap.** When a second pool regenerates some IDs, give the first a SKIP list (`clips/SKIP`) so it doesn't render the same shots with the outdated design.
 - **Fire-keyword false positives:** strip "flame-shaped" and "blazing" before testing a shot for fire, or the fire clause adds flames to fire-free shots.
 - **Run a QA gate per shot before the edit.** BERLOGA 2 failed critique: a successful generation went straight into the cut even when the action didn't happen. Check start, mid and end against the action criteria.
