@@ -126,6 +126,8 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 
 **Measure motion, don't eyeball it:** `motion_profile.py` gives mean frame difference per 0.5 s for each plate and flags late starts. `plate_motion.py` writes `docs/plate_plan.json`: per shot it trims only the static head and frozen tail, keeps the whole active span, and fits it to the slot (speed 0.85–1.35×). The renderer plays `offset + t·k`. Don't maximise peak motion: that skips action starts.
 
+**Phrase invariants positively. Never name what must not appear.** "no stars, no fire, no new decorations" made h3 paint glowing stars and fire onto the trike (BERLOGA 3 c39). "The paintwork stays exactly as painted, unchanged and unlit" did not. Likewise use "the scene stays dark with only the light sources already painted" instead of "NO fire anywhere". And remove from the start frame anything near the subject the model might grow (small fires beside the bears grew into large ornaments).
+
 **Story-state overrides beat global rules:** "eyes glow green from t≥19 s" must yield to "asleep: eyes closed" in the sleep shots. Rules keyed only on time contradict scene state.
 
 **Motion prompt recipe** (`motion.py`, about 2.5–4k chars, h3 follows long prompts):
