@@ -141,6 +141,8 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 6. **CONTINUITY:** carried over from the rules: eye state, hats, fire language, "no decorations appear" (h3 painted flowers onto a plain sidecar), nobody enters or leaves.
 7. **STYLE:** a painting coming to life; no text, no photorealism.
 
+**Occluded anatomy next to machinery:** when a moving character uncovers another character's body, that body must already be fully painted in the start frame. Otherwise h3 invents it from whatever sits nearby: in BERLOGA 3 c24 the mother's hidden leg became a machine-gun barrel. Also remove props of absent characters (the cat's gun) from the shot.
+
 **Reveals and uncoverings:** never hide in the start frame what the action will reveal. h3 invents the hidden part and drifts: in BERLOGA 3 c08 the samovar under the tarp inflated, flew up and the flag vanished. Show the object fully on-model, cover only a small part, and add a stillness invariant naming what may move ("ONLY the tarp, the father's arm and the headlamp light change; the trike does not move; no object rises, flies, grows, appears or disappears").
 
 **Crowds that flee or move:** paint every figure in the start frame facing the direction it will travel, mid-stride. Pin the direction in the motion prompt as well: "they run forward in the direction they face, never backwards". Calm figures facing the threat get moved away by walking backwards (BERLOGA 3 c19).
