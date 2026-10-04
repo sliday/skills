@@ -103,6 +103,47 @@ Every user correction becomes a named rule in `rules()`, never a one-off prompt 
 - **The user's notes come as single images:** answer each one with a named rule, regenerate exactly the affected shots, and show the before/after.
 - **vid2md** (`~/Playground/vid2md`, `uv run video-watch … --provider openrouter --model google/gemini-2.5-flash --skip-audio`) gives an independent timeline at about $0.1. It's good for catching text and blank frames.
 
+
+## 10. Image-to-video: what works and what doesn't (BERLOGA v1 → v2 → v3, measured)
+| Approach | Result |
+|---|---|
+| **Start frame only + motion prompt** (v1 BERLOGA, Replicate h3) | **Best.** Real movement through time. The default. |
+| Start + end frame both pinned (v2, fal h3-max) | **Morph.** When the end frame is an *edit* of the start it is nearly identical, so the model dissolves between two poses. Transient things like mid-air dirt stay frozen while the bears fall asleep. Never default to it. |
+| Start + mid + end frames | Worse morphing, more cost. Dropped. |
+| End frame as *reference only* | Ideal in principle, but **Replicate h3 rejects first/last frames combined with any reference media** (E006). fal h3-max accepts first frame + reference images, but rejects first frame + reference video. Use only when the end state truly differs. |
+| Reference video as motion guide | fal h3-max: incompatible with a first frame. Skip. |
+| Pinning the last frame | Only for real state changes the model can't infer (autumn to winter). Even then, describe it in text first. |
+
+**Motion prompt recipe** (`motion.py`, about 2.5–4k chars, h3 follows long prompts):
+1. **OPENING FRAME:** a *literal* description of what is painted. Gemini 2.5 Flash via OpenRouter captions every start frame (`caption.py`), left to right: characters, poses, held props, eye colour, objects, light, weather, anything frozen mid-motion. Without it the model guesses and drifts.
+2. **CAMERA:** one move. For vehicles, **spell out the parallax**: "the background streams past in the opposite direction, ground rushes by, wheels spin, mud flies backwards". Otherwise h3 renders a parked vehicle in front of a static backdrop.
+3. **WHAT HAPPENS over N seconds:** 1–2 actions as continuous real movement ("not a morph, not a dissolve").
+4. **By the end:** the end state in words.
+5. **Frozen debris continues** (falls, settles).
+6. **CONTINUITY:** carried over from the rules: eye state, hats, fire language, "no decorations appear" (h3 painted flowers onto a plain sidecar), nobody enters or leaves.
+7. **STYLE:** a painting coming to life; no text, no photorealism.
+
+**Keyframe composition for action:** compose the start as the *beginning* of the action, with room for it to happen (trike on the left third with intact houses ahead), never the mid-point.
+
+## 11. Storyboard board (`board.py`)
+Build one panel per shot with a **notes strip ABOVE the frame**, never on top of it: id, timecode, lyric under the shot, CAM, ACT, FX (renderer effects, retime), IN (handoff). Review this before any plates. On contact sheets, keep labels tiny in a corner (Menlo 11).
+
+## 12. Continuity handoffs (an improvement on storyboard-to-video's state_in/out)
+Scene IDs are not enough. Keep a **HANDOFF** table of physical state per shot: where the characters are (in bed / on the floor by the door / on the trike), what they hold, prop state (icon with moth until c27, **empty** after), eye state (closed asleep, green when hypnotised). Inject "CONTINUITY FROM THE PREVIOUS SHOT: …" into the keyframe prompt and build the rules from story time (`t0 >= …`). Failures it prevented: bears back in bed one shot after leaving it; the moth back in the icon after it flew away.
+
+## 13. Reference stack per keyframe
+- **Character library poster** (one sheet, 24 cards, every recurring element) as reference #1, plus 1–2 style paintings, plus the specific model sheets the shot needs.
+- **The user's master style bible**, condensed verbatim into STYLE: selective realism, scale dissonance, broken perspective, fewer elements.
+- **Anchor frame for the location** ("same place, NEW framing", otherwise it copies the composition: c10 = c11).
+- **Model sheets get fixed by whole redraws** when a panel is broken (the moth peel-off panel survived three edits). Fix props by sheet *edits* that keep the layout (mortar shell along the barrel axis).
+
+## 14. Process lessons
+- **Run a QA gate per shot before the edit.** BERLOGA 2 failed critique: a successful generation went straight into the cut even when the action didn't happen. Check start, mid and end against the action criteria.
+- **One main action per clip**; trim static holds.
+- **Keep oil, drop cut-out:** the cut-out/appliqué style produced AI deformation, not puppet motion. If you want real hinged cut-out motion, animate it deterministically in code instead.
+- **Stale style words** in actions ("cut-out trees") leak into motion prompts. Grep the shot data when the style changes.
+- **Moderation and prompt facts:** Lyria refuses artist names; gpt-image refuses minors in full-body turnarounds; h3 dislikes violent verbs.
+
 ## 8. Vertical 9:16 (per-shot hybrid, after the 16:9 cut is final)
 1. **Triage:** find the subject box on the 16:9 start frame. If it fits a 9:16 window, use a crop or pan (`vertical.js`). Otherwise recompose.
 2. **Recompose:** edit the approved start, mid and end frames to 9:16 with flare or sunburst ("same characters and poses, extend sky and ground, stack vertically"). Check them as triplets, then animate with h3-max using the same motion prompt. That repeats the performance without duplicating the frame.

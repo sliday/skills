@@ -4,7 +4,8 @@ import json, hashlib, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sha = lambda p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest()
 STYLE = (ROOT / "bibles/STYLE.txt").read_text().strip()
-SHEET = {"family": "bibles/char/sheet_family.png", "moth": "bibles/char/sheet_moth.png", "trike": "bibles/char/sheet_trike_model_v.png", "world": "bibles/char/sheet_world.png", "samovar": "bibles/char/sheet_samovar.png"}
+SHEET = {"family": "bibles/char/oil_family.jpeg", "moth": "bibles/char/moth_fix.jpeg", "trike": "bibles/char/trike_clean.jpeg", "world": "bibles/char/oil_world.jpeg", "samovar": "bibles/char/samovar_v2.jpeg"}
+STYLE_REFS = ["bibles/char/library.jpeg", "source/refs/style/s1_bears_bed.png"]
 SHEET_DESC = {"family": "the bear family and cat character sheet", "moth": "the moth model sheet (the one moth in all its formats, including the sky-covering super-moth)", "trike": "the war-trike model sheet (one exact vehicle from five angles)", "samovar": "the samovar and top-mortar props sheet (ignore the realistic bear in it; bears come only from the family sheet)", "world": "the world sheet (Rozh, Jesus-airplane, onion churches, elephants, flying man, trees, houses, tiny people)"}
 CAST = {
  "big": "FATHER BEAR from the family sheet (largest; heavy brown; crooked-teeth deadpan grimace; grey ushanka with red star; CROSSED bagel bandoliers; plain vodka bottle in paw)",
@@ -28,8 +29,12 @@ def rules(t0, sid, cast, has_trike):
     bears = any(c in ("big", "she", "cub", "cat") for c in cast) or has_trike
     nobody = "" if bears else " ABSOLUTELY NO bears, NO bear paws, NO cat and NO motorcycle anywhere in this frame; the bears are elsewhere."
     canon = ("CAST SCALE CANON: father bear = 1.0 height; mother bear = 0.85; cub = 0.5; cat sitting = 0.35; the war-trike is 1.6 father-bears long with its seat at his hip, and all four ride it together. " if bears else "")
-    return (f"{canon}{act} {season} ICON RULE: the only icon anywhere is the moth icon; no saints, no Madonna, no other religious pictures."
-            + (" SEATING RULE (whenever they ride the war-trike): the FATHER bear always drives, paws on the handlebars; the MOTHER bear always rides pillion directly behind him holding the moth icon; the CUB always sits in the sidecar with his balalaika and NEVER drives; the CAT always sits BACKWARDS on the front nose of the sidecar behind the Maxim gun. " if has_trike else "") + " UNIQUENESS RULE: every character appears EXACTLY ONCE in the frame: one father, one mother, one cub, one cat; never duplicates, never twins, never the same character both riding and standing; the war-trike appears at most once. ANATOMY RULE: every bear and the cat has clear, readable cut-out anatomy: one head firmly attached to the top of the torso by a neck, two arms from the shoulders, two legs from the hips, the pose readable as a silhouette; never a flat rug-like body, never a head floating on the belly, never extra or missing limbs; lying or sleeping bears are slumped SITTING against something with the head dropped onto the chest. FIRE RULE: any fire, flame, explosion or blaze is flat decorative KHOKHLOMA folk ornament (curling scarlet, vermilion and gold flame-leaves, berries and tendrils on black smoke), never realistic fire."
+    hyp = (" HYPNOSIS RULE: the bears' eyes glow witchy pale green (hypnotised by the moth) in every frame from now on." if bears and t0 >= 19.3 else (" The bears' eyes are closed (asleep)." if bears else ""))
+    nocat = (" The CAT is NOT in this frame." if bears and "cat" not in cast else "")
+    if "she" in cast and t0 >= 115: nocat += " ICON STATE: the moth has LEFT the icon: the mother bear holds an EMPTY ornate gold-red-green icon frame (plain pale canvas inside, no moth painted in it)."
+    elif "she" in cast and 19.3 <= t0 < 109: nocat += " ICON STATE: the mother bear holds the moth icon with the moth painted inside it, glowing faintly green."
+    return (f"{canon}{act} {season}{hyp}{nocat} ICON RULE: the only icon anywhere is the moth icon; no saints, no Madonna, no other religious pictures."
+            + (" SEATING RULE (whenever they ride the war-trike): the FATHER bear always drives, paws on the handlebars; the MOTHER bear always rides pillion directly behind him holding the moth icon; the CUB always sits in the sidecar with his balalaika and NEVER drives; the CAT always sits BACKWARDS on the front nose of the sidecar behind the Maxim gun. " if has_trike else "") + " UNIQUENESS RULE: the moth icon exists only once (if a bear holds it, it is NOT on the wall); every character appears EXACTLY ONCE in the frame: one father, one mother, one cub, one cat; never duplicates, never twins, never the same character both riding and standing; the war-trike appears at most once. ANATOMY RULE: every bear and the cat has clear, readable anatomy: one head firmly attached to the top of the torso by a neck, two arms from the shoulders, two legs from the hips, the pose readable as a silhouette; never a flat rug-like body, never a head floating on the belly, never extra or missing limbs; lying or sleeping bears are slumped SITTING against something with the head dropped onto the chest. FIRE RULE: any fire, flame, explosion or blaze is flat decorative KHOKHLOMA folk ornament (curling scarlet, vermilion and gold flame-leaves, berries and tendrils on black smoke), never realistic fire."
             " HOUSE RULE: every house is a crude naive box with heavily distorted wrong perspective (leaning walls, roof tilted toward the viewer, mismatched windows). CHURCH RULE: every church is an ONION church: whitewashed blocks with domes that are literal brown-gold onion bulbs with tall green onion sprouts; never a spire."
             " TREE RULE: trees are tall dark soft flame-shaped silhouettes like blurred dark cypresses, in small groups."
             " HAT RULE: every bear always wears his grey ushanka with a red star and his own bagels exactly as on the family sheet; never bare-headed. BOTTLE RULE: every bottle is the same plain unlabeled clear half-litre bottle whose length equals the width of the father bear's muzzle."
@@ -40,22 +45,18 @@ def rules(t0, sid, cast, has_trike):
 S = [
  ("c01", 0.0, 7.8, ["sb01"], [], False, ["world"], ("dolly_in", "very slow push in toward the den door"),
   "Night: a dark forest of tall flame-shaped trees in the rain; a huge mossy den mound like a sleeping hill with a small grey Soviet apartment-stairwell door and one warm yellow window; a low pale moon with only the faint suggestion of a sleepy face", None, None,
-  ["rain falls steadily", "the cut-out trees sway very slightly on their own layers", "the yellow window flickers once"], None),
- ("c02", 7.8, 15.7, ["sb01", "sb02"], ["big", "she", "cub", "moth"], False, ["family", "moth", "world"], ("locked", "static interior"),
+  ["rain falls steadily", "the dark trees sway gently in the wind", "the yellow window flickers once"], None),
+ ("c02", 7.8, 19.3, ["sb01", "sb02"], ["big", "she", "cub", "moth"], False, ["family", "moth", "world"], ("locked", "static interior"),
   "Inside the cramped den at night: the three bears asleep in one bed under a patterned blanket, all still wearing their ushankas, the father snoring with the vodka bottle on his chest; on the wall above them a patterned rug, the MOTH ICON in its ornate gold-red-green frame, and a shelf with seven white porcelain elephants; an old radiator and an enamel mug",
   None, "the moth in the icon now radiates a witchy pale green-white glow that spills over the sleeping bears' faces",
-  ["the bears breathe slowly, blanket rising", "the moth icon starts to glow, faint at first, then strong", "green-white light creeps over the bears' faces"], None),
- ("c03", 15.7, 19.3, ["sb02"], ["moth"], False, ["moth"], ("dolly_in", "slow push in to the icon"),
-  "Close-up of the MOTH ICON hanging on the rug-covered den wall: the moth painted inside the ornate gold-red-green enamel frame, glowing pale green-white, light rays spreading from it",
-  None, "the moth's wings have opened wider inside the icon and the glow fills the frame",
-  ["the moth's wings twitch inside the icon", "its feathery antennae move", "the glow pulses and grows brighter"], None),
+  ["the bears sleep and breathe slowly, blanket rising and falling", "the moth inside the icon starts to glow, faint at first", "its wings twitch inside the frame and the glow grows strong", "green-white light creeps over the sleeping bears' faces"], None),
  ("c04", 19.3, 23.1, ["sb02"], ["big", "she", "cub"], False, ["family"], ("locked", "static medium"),
   "The three bears sitting bolt upright in their bed like zombies, arms hanging forward, eyes blank and reflecting green glow, ushankas on their heads, the green light of the icon falling on them from the left",
-  None, "the three bears are standing beside the bed in a row, arms stretched forward like sleepwalkers, all facing left toward the glowing light",
-  ["the bears sit up stiffly at the same moment", "they swing their legs out of bed like puppets", "they stand up in a row, arms forward, moving like sleepwalkers"], None),
+  None, "the three bears have climbed out of bed and are walking like sleepwalkers, arms stretched forward, all turned toward the low wooden den door at the far RIGHT of the room, their backs half to the icon",
+  ["the bears sit up stiffly at the same moment", "they swing their legs out of bed like puppets", "they turn toward the den door and shuffle toward it like sleepwalkers"], None),
  ("c05", 23.1, 26.85, ["sb03", "sb06"], ["big", "she", "cub", "moth"], False, ["family", "moth"], ("locked", "static medium"),
-  "Inside the den: the MOTHER BEAR lifting the glowing moth icon down from the wall with both paws, reverently, like a holy relic; behind her the FATHER BEAR slinging strings of golden bagels across his chest; the CUB tying on his one-bagel pendant",
-  None, "the mother bear holds the glowing icon in front of her chest with both paws like a relic; the father's bagel bandoliers are crossed on his chest",
+  "Inside the den, the bears have already climbed OUT of bed and stand on the wooden floor in front of the bed, on the side nearest the low den door at the right: the MOTHER BEAR reaches up and lifts the glowing moth icon down from the wall with both paws, reverently, like a holy relic; behind her the FATHER BEAR slinging strings of golden bagels across his chest; the CUB tying on his one-bagel pendant",
+  None, "the mother bear holds the glowing icon in front of her chest with both paws like a relic; on the wall where the icon hung there is now only a BARE NAIL and a paler empty rectangle on the dark planks (the icon is no longer on the wall); the father's bagel bandoliers are crossed on his chest",
   ["the mother bear raises the icon off its nail and lowers it to her chest", "the father loops bagel strings over his shoulders into crossed bandoliers", "the cub straightens his too-big hat"], None),
  ("c06", 26.85, 30.45, ["sb04"], ["big", "she", "cub", "moth"], False, ["family", "moth"], ("locked", "static wide"),
   "Night, rain: the small grey stairwell door of the den mound swings open; the three bears squeeze out one by one into the rain, the mother first holding the glowing moth icon before her like a lantern, the father scratching his belly, the cub stretching",
@@ -78,7 +79,7 @@ S = [
   None, None,
   ["the trike drives fast from left to right", "mud sprays from the wheels in arcs", "the banner whips", "the riders bounce"], "clips/v1/b11_h3.mp4"),
  ("c11", 45.05, 47.81, ["sb07"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
-  "The forest road climbs upward like a theatre stage; the WAR-TRIKE with all four riders charges up it toward the viewer, headlamp blazing; flame-shaped trees lean in different perspectives on both sides",
+  "HEAD-ON FRONT VIEW from low on the road: the war-trike charges straight TOWARD the viewer up a forest road that climbs like a theatre stage, its single eye-like headlamp blazing in the centre of the frame, the father bear at the handlebars facing us, the mother behind him, the cub peeking from the sidecar on the left, the cat backwards on the sidecar nose; leaning dark flame-shaped trees on both sides; NOT a side view",
   None, None, ["the trike climbs the road toward camera", "the headlamp beam swings", "the trees on their layers lean aside as it passes"], None),
  ("c12", 47.81, 51.77, ["sb07", "sb14"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
   "The WAR-TRIKE plows straight through the dark forest, snapping flame-shaped trees like matchsticks; a deer and three squirrels flee to the right; the father tosses an empty bottle and bagel crumbs fly behind",
@@ -88,7 +89,7 @@ S = [
   "By the forest road at night: the bears on the parked trike laugh and burp beside a roadside campfire painted as flat Khokhloma ornament fire; the CUB tosses an empty bottle into it; heavy rain falls INTO the fire",
   None, "the Khokhloma ornament fire has grown three times taller, fed by the rain, curling red-and-gold flame-leaves towering over the trike",
   ["the bottle lands in the fire", "every raindrop that hits the fire makes the ornamental flames swell and curl higher", "the bears throw their heads back laughing"], None),
- ("c14", 56.31, 65.52, ["sb10", "sb14"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
+ ("c14", 56.31, 65.52, ["sb10", "sb14"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("truck_right", "very slow lateral camera drift to the right"),
   "The bears have climbed off the trike at a forest clearing in the rain: the FATHER drinks from his bottle and smokes a thin cigarette, the MOTHER holds the glowing icon, the CUB sits on a stump; a curious deer and two squirrels approach from the right",
   (0.5, "the father bear swats at the deer with a huge paw and the mother bear stamps her foot at the squirrels; the animals recoil in fright"),
   "the deer and squirrels are fleeing far away to the right; the father drinks again, the mother looks after them with contempt",
@@ -104,13 +105,13 @@ S = [
   "The three bears hugging clumsily like brothers in the rain, the father and mother clinking plain bottles, their bagel strings tangled together, the cub squeezed in the middle; the cat sits backwards beside them",
   None, None, ["the bears clink bottles", "they sway together in a heavy hug", "the cub's hat slips over his eyes"], None),
  ("c18", 76.53, 80.25, ["sb08", "sb23"], ["big", "she", "cub", "cat"], True, ["family", "trike", "world"], ("dolly_out", "slow pull back to reveal scale"),
-  "Pull-back reveal: the bears and the war-trike are GIANTS standing among the fields; at their feet lies a whole tiny village of crude distorted houses and white ONION churches with green sprouts, a few tiny grey elephants and ant-sized people",
-  None, "the full giant scale is visible: tiny people and little elephants have started running away between the houses",
-  ["the camera pulls back and back", "the tiny people and little elephants notice and start to run"], None),
- ("c19", 80.25, 83.65, ["sb08"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static low"),
-  "Low view: one enormous knobbly wheel of the war-trike rolling over a row of tiny crude houses with wrong perspective, crushing their roofs; tiny people and little grey elephants run between them",
+  "Close shot: the war-trike with all four riders seen against the dark rainy night sky and dark field edge only; the frame is filled by the trike and the bears; NO village, houses or people visible yet",
+  None, "the camera has pulled far back: the bears and the war-trike are GIANTS; a whole tiny village of crude distorted houses and onion churches lies at their feet; ant-sized people and little grey elephants start running away",
+  ["the camera pulls back far and fast, revealing the tiny village at their feet"], None),
+ ("c19", 80.25, 83.65, ["sb08"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("tracking", "low tracking shot moving right alongside the wheel"),
+  "Low view: the war-trike with all four riders on the LEFT third of the frame, its enormous knobbly front wheel just touching the first of a row of INTACT tiny crude houses with warm lit windows that stretches ahead of it to the right; tiny people and little grey elephants in the street ahead, not yet running",
   None, "the row of houses is flattened like paper behind the wheel",
-  ["the wheel rolls forward", "roofs crumple flat one by one", "tiny people and elephants scatter"], "clips/v1/b19_h3.mp4"),
+  ["the war-trike drives forward to the right, its wheels turning, rolling over the row of houses and flattening each one like paper as it passes", "tiny people and elephants flee ahead of it"], "clips/v1/b19_h3.mp4"),
  ("c20", 83.65, 87.52, ["sb08", "sb12"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
   "The giant war-trike with all four riders in their seats drives straight through a wide river, the water only up to its wheel hubs, a big bow wave spraying; the cat sits backwards on the sidecar nose firing the Maxim gun into the sky, tracers like shooting stars; tiny boats and tiny houses on the banks",
   None, None, ["the trike ploughs through the river from left to right", "a bow wave sprays up from the wheels", "the cat fires and tracers streak upward", "tiny boats rock in the wave"], "clips/v1/b21_h3.mp4"),
@@ -140,7 +141,7 @@ S = [
  ("c27", 109.0, 115.0, ["sb15"], ["she", "moth"], False, ["family", "moth"], ("dolly_in", "slow push in"),
   "Night, rain, red glow on the horizon: the giant MOTHER BEAR holds up the glowing MOTH ICON; the moth inside the frame blazes with witchy green-white light",
   None, "the moth has peeled itself off the icon and hovers free in the air above it, wings spread, glowing; the icon's frame is empty",
-  ["the icon blazes brighter", "the moth peels off the painted icon like a cut-out", "it flutters up and hovers above the empty frame"], None),
+  ["the icon blazes brighter", "the moth slowly peels itself off the painted icon surface, wings first", "it flutters up and hovers above the empty frame"], None),
  ("c28", 115.0, 123.0, ["sb15"], ["moth"], False, ["moth", "world"], ("zoom_out", "slow zoom out"),
   "The glowing MOTH, small, flutters up into a dark night sky above a burning landscape of flame-shaped trees and tiny houses",
   (0.5, "the moth is now enormous, its spread wings covering half the sky"),
@@ -166,7 +167,7 @@ S = [
   None, "the sky over the village is full of red-and-gold Khokhloma flower bursts",
   ["the father winds up and throws", "the bombs arc through the air", "they bloom into ornamental fire-flowers", "the cub cheers"], "clips/v1/b28_h3.mp4"),
  ("c34", 151.32, 154.96, ["sb16"], [], False, ["world"], ("locked", "static wide"),
-  "A burnt field in the rain among ruins of crude houses: several tiny women in black headscarves stand weeping with their hands over their faces; Khokhloma fires smoulder in the ruins",
+  "A burnt field in the rain among ruins of crude houses: in the foreground three naive painted widows in black headscarves: schematic, elongated, almost doll-like bodies flattened into black cloth, small simple faces with painted tears and hands over their mouths, painted as in a naive folk icon; one widow MONUMENTAL, taller than the ruined houses, the other two small; deadpan grief; Khokhloma fires smoulder in the ruins",
   None, None, ["rain falls", "the women's shoulders shake as they weep", "smoke drifts"], None),
  ("c35", 154.96, 158.58, ["sb11"], ["big", "she", "cub"], True, ["family", "trike"], ("truck_left", "slow side tracking"),
   "Wide: the giant silhouettes of the three bears and the war-trike march along the horizon under a sky covered by the moth's dark wings; the cub in the sidecar fires the brass TOP-MORTAR: striped spinning-top shells spiral up into the sky and burst into big flat Khokhloma fire-flowers over the tiny village; tiny people hide in cellars below",
@@ -180,7 +181,7 @@ S = [
   None, "the trike has nearly stopped; the father's head droops",
   ["the trike crawls", "the bears sway", "the father's head droops forward"], None),
  ("c38", 168.46, 172.34, ["sb18", "sb19"], ["cub"], False, ["family"], ("locked", "static medium"),
-  "The CUB sitting in the mud playing the balalaika more and more slowly, his eyes closing, rain on the strings",
+  "The CUB alone, sitting AWAKE in the mud, eyes open and glowing green, strumming the balalaika, rain on the strings; the other bears are not in this frame",
   None, "the cub has stopped playing; his eyes are shut and his chin rests on the balalaika",
   ["he strums slower", "his eyes close", "his paw stops on the strings"], None),
  ("c39", 172.34, 176.81, ["sb19"], ["big", "she", "cub", "cat"], True, ["family", "trike"], ("locked", "static wide"),
@@ -217,8 +218,23 @@ LOC_NOTE = {"den_in": "the den interior: dark plank walls, the black rug with sy
             "sleep": "the muddy ash field where the bears fall asleep around the war-trike"}
 LOC_OF = {sid: loc for loc, ids in LOC.items() for sid in ids}
 TRIKE_RULE = (" TRIKE RULE: the war-trike is ALWAYS exactly the vehicle on the war-trike model sheet: heavy olive-green riveted motorcycle with the sidecar on its RIGHT, rust patches, small spikes on the mudguards, huge knobbly tyres, the Khokhloma samovar as fuel tank, ONE round worried-eye headlamp, tall curved handlebars with a small striped top hanging, exactly THREE tall rusty organ-pipe exhausts behind the seat, a crate of bagels and two plain bottles on the sidecar rear, a plain torn red banner on a pole; never another vehicle shape.")
-SAMOVAR_RULE = (" SAMOVAR RULE: there is exactly ONE samovar design, exactly as on the samovar props sheet: round brass belly painted with Khokhloma red berries and golden leaves on black, brass crown chimney, curled brass handles, brass tap, four curled legs; on the war-trike it is the fuel tank between handlebars and seat; as a flamethrower it is carried by its handles with a long straight brass spout on its tap. TOP-MORTAR: a short fat brass mortar on a Khokhloma-painted wooden base firing striped red-gold-black spinning-top shells that burst into flat Khokhloma fire-flowers.")
+SAMOVAR_RULE = (" SAMOVAR RULE: there is exactly ONE samovar design, exactly as on the samovar props sheet: round brass belly painted with Khokhloma red berries and golden leaves on black, brass crown chimney, curled brass handles, brass tap, four curled legs; on the war-trike it is the fuel tank between handlebars and seat; as a flamethrower it is carried by its handles with a long straight brass spout on its tap. TOP-MORTAR: a short fat brass mortar on a Khokhloma-painted wooden base firing striped red-gold-black spinning-top shells that burst into flat Khokhloma fire-flowers; a shell always leaves the muzzle STRAIGHT ALONG THE AXIS OF THE BARREL, continuing the barrel line exactly (pointed tip first), never at an angle to it, with smoke puffing along the same line.")
 MOTH_RULE = (" MOTH RULE: the moth (and the moth in the icon) is always EXACTLY the moth from the moth model sheet: pale grey-brown triangular wings with the same dark zig-zag bands, furry pale thorax, long segmented abdomen, two long feathery antennae, two tiny dark eyes, no mouth; never a butterfly, never a bat; the icon frame is ornate gold, red and green enamel.")
+HANDOFF = {
+ "c04": "the bears have just woken in bed under the blanket",
+ "c05": "the bears have already climbed out of bed and stand on the floor near the den door",
+ "c06": "the mother carries the glowing icon at her chest; the father wears crossed bagel bandoliers; they now leave the den through its door",
+ "c08": "they stand outside the den beside the parked war-trike; the mother holds the icon",
+ "c09": "everyone sits on the war-trike: father driving, mother pillion holding the icon, cub in the sidecar, cat backwards on the sidecar nose behind the Maxim gun",
+ "c10": "all four riding the war-trike in their seats", "c11": "all four riding the war-trike in their seats", "c12": "all four riding the war-trike in their seats",
+ "c13": "the trike is parked by the road; the bears sit beside it", "c14": "the bears stand beside the parked trike", "c15": "all four riding the war-trike in their seats",
+ "c17": "the bears stand beside the parked trike", "c18": "all four riding the war-trike in their seats", "c19": "all four riding the war-trike in their seats",
+ "c20": "all four riding the war-trike in their seats", "c23": "all four riding the war-trike in their seats",
+ "c24": "the trike has stopped; the cub sits in the sidecar", "c25": "the cub has climbed out of the sidecar and crouches over the music box",
+ "c26": "the cub crouches over the music box; the mother walks over to him", "c28": "the moth has just left the icon; the mother now holds an empty frame",
+ "c29": "the moth covers the sky; the mother holds the empty icon frame", "c37": "all four riding the war-trike, slowing in the mud",
+ "c38": "the cub sits alone in the mud near the stopped trike", "c39": "the trike has stopped in the mud", "c40": "the bears sit slumped asleep against the trike wheels",
+}
 shots, rs = [], []
 for (sid, t0, t1, sb, cast, trike, sheets, cam, start, mid, end, act, vref) in S:
     d = round(t1 - t0, 3); who = "; ".join(CAST[c] for c in cast) + ("; " + PROPS_DESC if trike else "")
@@ -230,32 +246,32 @@ for (sid, t0, t1, sb, cast, trike, sheets, cam, start, mid, end, act, vref) in S
     txt = (start + " ".join(act) + str(end) + str(mid)).lower()
     samo = trike or any(k in txt for k in ("samovar", "flamethrower", "mortar", "top-shell"))
     if samo and "samovar" not in sheets: sheets = sheets + ["samovar"]
-    refs = [SHEET[s] for s in sheets]
+    refs = [SHEET[s] for s in sheets] + STYLE_REFS
     if anchor and anchor != sid: refs = [f"keyframes/{anchor}_start.jpg"] + refs
-    locnote = (f" LOCATION CONTINUITY: the first attached image is the approved frame of this same place ({LOC_NOTE[loc]}); keep its geography, set dressing, colours and the exact placement of every fixed object; only the characters and their action change." if anchor and anchor != sid else (f" LOCATION: {LOC_NOTE[loc]}." if loc else ""))
-    R = R + locnote + (MOTH_RULE if mothy else "") + (SAMOVAR_RULE if samo else "") + (TRIKE_RULE if trike else "")
+    locnote = (f" LOCATION CONTINUITY: the first attached image is the approved frame of this same place ({LOC_NOTE[loc]}); keep the same place: its geography, set dressing, colours and the placement of fixed objects, BUT compose a NEW camera framing as described in SCENE (do not copy the anchor's composition or character poses)." if anchor and anchor != sid else (f" LOCATION: {LOC_NOTE[loc]}." if loc else ""))
+    R = R + (f" CONTINUITY FROM THE PREVIOUS SHOT: {HANDOFF[sid]}." if sid in HANDOFF else "") + locnote + (MOTH_RULE if mothy else "") + (SAMOVAR_RULE if samo else "") + (TRIKE_RULE if trike else "")
     kf = f"{STYLE} SCENE: {start}. CAST (closed): {who}. {R}"
-    edit = lambda change: (f"Edit the FIRST attached image, which is the start frame of this shot. Keep the exact same composition, camera framing, background, lighting, cut-out painting style, and the design, size and position of every character and object, "
+    edit = lambda change: (f"Edit the FIRST attached image, which is the start frame of this shot. Keep the exact same composition, camera framing, background, lighting, oil painting style, and the design, size and position of every character and object, "
                            f"EXCEPT for this change only: {change}. The other attached images are the character sheets; keep every character exactly on-model. {R}")
     off = 1 if (anchor and anchor != sid) else 0
     refnames = ("Image 1 is the approved frame of this location; " if off else "") + "; ".join(f"Image {i+1+off} is {SHEET_DESC[s]}" for i, s in enumerate(sheets))
-    motion = (f"Cut-out appliqué animation of painted canvas pieces, like a Yuri Norstein cut-out film: every character and object is a flat cut-out piece of painted canvas with frayed edges; pieces hinge at joints, slide, tilt and bob; background layers drift in gentle parallax; nothing rotates in 3D, nothing morphs, the canvas texture and cut edges stay visible the whole time. "
+    motion = (f"A living naive OIL PAINTING on canvas in gentle motion: smooth glazed brushwork and canvas weave stay visible the whole time; characters move naturally but simply, like a painting coming to life; background layers drift in gentle parallax; nothing morphs, faces and designs stay exactly as painted. "
               f"References: {refnames}; keep every character exactly on-model and in scale (father 1.0, mother 0.85, cub 0.5). "
               
-              + f"SHOT: {start}. CAMERA: {cam[1]}. ACTION, in order: " + "; then ".join(f"({i+1}) {a}" for i, a in enumerate(act)) + ". "
+              + f"SHOT: {start}. CAMERA: {cam[1]}. ONE CONTINUOUS MAIN ACTION, performed fully and visibly over the whole clip (real movement, not a dissolve): " + "; then ".join((act if len(act) <= 2 else [act[0], act[-1]])) + ". "
               + (f"END STATE: {end}. " if end else "")
               + ("FIRE: all fire stays flat Khokhloma ornament for the whole clip; it grows and curls like a painted ornament and never becomes realistic flames. " if any(k in (start + ' '.join(act) + (end or '')).lower() for k in ("fire", "flame", "burn", "blaze", "bomb", "rocket", "tracer")) else "")
-              + "NEVER: text, letters, signs with writing, extra characters, bare-headed bears, realistic fire, photorealism, 3D render, morphing faces.")
+              + "NEVER: text, letters, signs with writing, extra characters, bare-headed bears, realistic fire, photorealism, 3D render, cartoon outlines, cut-out paper look, morphing faces.")
     rs.append({"id": sid, "loc": loc, "anchor": anchor, "t0": t0, "t1": t1, "dur": d, "req_dur": max(3, min(15, int(-(-d // 1)))), "refs": refs, "sheets": sheets, "vref": vref,
                "kf_start": kf, "kf_mid": edit(mid[1]) if mid else None, "mid_frac": mid[0] if mid else None, "kf_end": edit(end) if end else None, "motion": motion, "cast": cast, "trike": trike})
     shots.append({"id": sid, "source_beat_ids": sb, "provenance_class": "explicit_text", "purpose": start[:140], "duration_seconds": d, "duration_source": "lyric_aligned",
         "state_in": {"scene": sid, "season": "winter" if sid == "c41" else "autumn"}, "state_out": {"scene": sid, "season": "winter" if sid in ("c40", "c41") else "autumn"},
         "prompt": {"closed_cast": cast, "prop_ids": ["war_trike"] if trike else [], "start": start, "camera": {"operation": cam[0], "instruction": cam[1]}, "action": act, "end": end or act[-1],
-                   "invariants": ["cut-out appliqué canvas look", "characters on-model per sheets", "no text anywhere"], "forbid": ["text", "realistic fire", "bare-headed bears", "snow before c40"],
+                   "invariants": ["naive oil painting on canvas look", "characters on-model per sheets", "no text anywhere"], "forbid": ["text", "realistic fire", "bare-headed bears", "snow before c40"],
                    "keyframes": {"start": kf, "mid": edit(mid[1]) if mid else None, "end": edit(end) if end else None}, "motion_prompt": motion, "references": refs, "motion_reference_video": vref},
         "qa": {"criteria": [{"id": f"{sid}-c1", "target": "start", "expected": start[:200], "severity": "major"},
                             {"id": f"{sid}-c2", "target": "action", "expected": act[-1], "severity": "critical"},
-                            {"id": f"{sid}-c3", "target": "style", "expected": "cut-out appliqué naive canvas look; characters on-model", "severity": "critical"},
+                            {"id": f"{sid}-c3", "target": "style", "expected": "naive oil painting look; characters on-model", "severity": "critical"},
                             {"id": f"{sid}-c4", "target": "notext", "expected": "no text, letters or numbers anywhere", "severity": "critical"}], "verdict": "pending", "evidence": []}})
 CHARS = {"big": "father bear", "she": "mother bear", "cub": "cub", "cat": "cat", "moth": "moth", "rozh": "Rozh", "jesus_plane": "Jesus-airplane", "winged": "flying men"}
 project = {"schema_version": "1.1", "project_id": "berloga2", "title": "BERLOGA 2 (Лей, ливень, лей)", "mode": "author", "validation_stage": "draft",
