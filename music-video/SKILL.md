@@ -144,6 +144,9 @@ Scene IDs are not enough. Keep a **HANDOFF** table of physical state per shot: w
 - **Model sheets get fixed by whole redraws** when a panel is broken (the moth peel-off panel survived three edits). Fix props by sheet *edits* that keep the layout (mortar shell along the barrel axis).
 
 ## 14. Process lessons
+- **Wait loops:** `while pgrep -f "tools/pool.py"` matches its own shell command line and never exits. Wait on a PID file, or use `pgrep -f "^python3 tools/pool.py"`.
+- **Two pools must not overlap.** When a second pool regenerates some IDs, give the first a SKIP list (`clips/SKIP`) so it doesn't render the same shots with the outdated design.
+- **Fire-keyword false positives:** strip "flame-shaped" and "blazing" before testing a shot for fire, or the fire clause adds flames to fire-free shots.
 - **Run a QA gate per shot before the edit.** BERLOGA 2 failed critique: a successful generation went straight into the cut even when the action didn't happen. Check start, mid and end against the action criteria.
 - **One main action per clip**; trim static holds.
 - **Keep oil, drop cut-out:** the cut-out/appliqué style produced AI deformation, not puppet motion. If you want real hinged cut-out motion, animate it deterministically in code instead.
