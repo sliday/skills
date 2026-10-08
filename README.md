@@ -8,6 +8,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 
 | Skill | What it does |
 |---|---|
+| [`visual-explanation`](./visual-explanation/SKILL.md) | Chooses the clearest teaching medium, then builds and verifies practical HTML explainers, diagrams, or narrated videos. Production toolkit, not an always-active instruction layer. |
 | [`prototyper`](./prototyper/SKILL.md) | Defines and builds usable prototypes with local discovery, nested client progress cards, feedback, acceptance checks and a team handoff. |
 | [`anonymizer`](./anonymizer/SKILL.md) | Redacts personal details locally from text and images with OpenAI Privacy Filter, opaque image masks, and optional consent-gated GPT Image 2.5 finishing. |
 | [`hotel-hunting`](./hotel-hunting/SKILL.md) | Finds hotels rated honestly by AI, not pay-to-play, using Hotelist normalization, real traveler reports, photo forensics, and exact-stay verification. |
