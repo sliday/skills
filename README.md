@@ -8,6 +8,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 
 | Skill | What it does |
 |---|---|
+| [`wolt-deals`](./wolt-deals/SKILL.md) | Finds restaurant discounts, menu prices, and the cheapest grocery basket on Wolt in any city through public pages and the consumer API. Read-only: no login, no orders. Filters out new-user-only offers and flags payment, takeaway, and time-window conditions. |
 | [`visual-explanation`](./visual-explanation/SKILL.md) | Chooses the clearest teaching medium, then builds and verifies practical HTML explainers, diagrams, or narrated videos. Production toolkit, not an always-active instruction layer. |
 | [`prototyper`](./prototyper/SKILL.md) | Defines and builds usable prototypes with local discovery, nested client progress cards, feedback, acceptance checks and a team handoff. |
 | [`anonymizer`](./anonymizer/SKILL.md) | Redacts personal details locally from text and images with OpenAI Privacy Filter, opaque image masks, and optional consent-gated GPT Image 2.5 finishing. |
