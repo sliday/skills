@@ -203,6 +203,90 @@ class FeeAndItemTests(unittest.TestCase):
         url = wolt._assortment_url("auchan-pokorna", "cheese-37", "eyJ=")
         self.assertTrue(url.endswith("/venues/slug/auchan-pokorna/assortment/categories/slug/cheese-37?language=en&page_token=eyJ%3D"))
 
+    def test_sort_items_by_price_unit_and_saving(self):
+        rows = [
+            {"id": "a", "price": 500, "original_price": 900, "unit_price": None},
+            {"id": "b", "price": 300, "original_price": None, "unit_price": 1500},
+            {"id": "c", "price": None, "original_price": None, "unit_price": 900},
+        ]
+        self.assertEqual([r["id"] for r in wolt.sort_items(rows, "price")], ["b", "a", "c"])
+        self.assertEqual([r["id"] for r in wolt.sort_items(rows, "unit")], ["c", "b", "a"])
+        self.assertEqual(wolt.sort_items(rows, "saving")[0]["id"], "a")
+        self.assertEqual(wolt.sort_items(rows, None), rows)
+
+
+class TextSortAndDealTests(unittest.TestCase):
+    ITEMS = {"roll": {"id": "roll", "name": "Dragon Roll", "price": 1320}}
+
+    def test_clean_text_normalizes_spaces_and_drops_marks(self):
+        self.assertEqual(wolt.clean_text("15\u202fPLN\u00a0off now\u202c "), "15 PLN off now")
+        self.assertIsNone(wolt.clean_text(None))
+
+    def test_best_pct_for_each_offer_shape(self):
+        pct = wolt.describe_discount(campaign("20% off rolls", {"item_discount": {"fraction": 0.2, "include": {"items": ["roll"]}}}),
+                                     self.ITEMS, "EUR")
+        self.assertEqual(pct["best_pct"], 20.0)
+        fixed = wolt.describe_discount(campaign("5 off over 25", {"basket_discount": {"amount": 500, "fraction": None}},
+                                                {"basket_contains": [{"min_amount": 2500}]}), {}, "EUR")
+        self.assertEqual(fixed["best_pct"], 20.0)
+        per_item = wolt.describe_discount(campaign("3.30 off", {"item_discount": {"fraction": None, "amount_per_item": 330,
+                                                                                   "include": {"items": ["roll"]}}}), self.ITEMS, "EUR")
+        self.assertEqual(per_item["best_pct"], 25.0)
+        free = wolt.describe_discount(campaign("Free delivery", {"delivery_discount": {"fraction": 1.0}}), {}, "EUR")
+        self.assertIsNone(free["best_pct"])
+        capped = wolt.describe_discount(campaign("50% off, max 1 EUR", {"basket_discount": {"fraction": 0.5, "max_amount": 100}},
+                                                 {"basket_contains": [{"min_amount": 2000}]}), {}, "EUR")
+        self.assertEqual(capped["best_pct"], 5.0)
+
+    def test_sort_venues_by_rating_eta_and_fee(self):
+        venues = [{"slug": "a", "rating": 8.1, "eta": "30-40", "delivery_fee": 0},
+                  {"slug": "b", "rating": 9.4, "eta": "15-25", "delivery_fee": None},
+                  {"slug": "c", "rating": None, "eta": None, "delivery_fee": 199}]
+        self.assertEqual([v["slug"] for v in wolt.sort_venues(venues, "rating")], ["b", "a", "c"])
+        self.assertEqual([v["slug"] for v in wolt.sort_venues(venues, "eta")], ["b", "a", "c"])
+        self.assertEqual([v["slug"] for v in wolt.sort_venues(venues, "fee")], ["a", "c", "b"])
+
+    def test_deals_ranks_own_offers_and_drops_wide_and_new_user_ones(self):
+        def venue(slug, rating, own):
+            promos = [{"campaign_id": "wide", "text": "0 PLN delivery fee"}] + ([{"campaign_id": own, "text": "own"}] if own else [])
+            return {"venue": {"name": slug.title(), "slug": slug, "online": True, "rating": {"score": rating},
+                              "estimate_range": "20-30", "currency": "PLN", "promotions_for_telemetry": promos}}
+
+        page = {"sections": [{"items": [venue("sushi", 9.4, "s20"), venue("pizza", 8.0, "p40"), venue("kebab", 9.0, None)]
+                              + [venue(f"x{n}", 7.0, None) for n in range(3)]}]}
+        dynamics = {
+            "sushi": [campaign("20% off rolls", {"item_discount": {"fraction": 0.2, "include": {"items": ["roll"]}}}, id="venue_campaign:s20"),
+                      campaign("0 PLN delivery fee", {"delivery_discount": {"fraction": 1.0}}, id="venue_campaign:wide")],
+            "pizza": [campaign("40% off pizza", {"basket_discount": {"fraction": 0.4}}, id="venue_campaign:p40"),
+                      campaign("-5 on your first order", {"basket_discount": {"amount": 500}}, id="venue_campaign:new")],
+        }
+        calls = []
+
+        def fake_get(url):
+            calls.append(url)
+            if "/v1/pages/" in url:
+                return page
+            if "/assortment" in url:
+                return {"items": list(self.ITEMS.values())}
+            slug = url.split("/venue/slug/")[1].split("/")[0]
+            return {"order_minimum": 0, "venue_raw": {"discounts": dynamics[slug]}}
+
+        original, wolt._get = wolt._get, fake_get
+        try:
+            args = wolt.build_parser().parse_args(["deals", "--lat", "52.2297", "--lon", "21.0122"])
+            result = wolt.cmd_deals(args)
+        finally:
+            wolt._get = original
+        self.assertEqual(result["checked_venues"], 2)
+        self.assertEqual([(d["slug"], d["best_pct"]) for d in result["deals"]], [("pizza", 40.0), ("sushi", 20.0)])
+        self.assertTrue(all("lat=52.23&" in u for u in calls if "lat=" in u))
+        wolt._get = fake_get
+        try:
+            negative = wolt.cmd_deals(wolt.build_parser().parse_args(["deals", "--lat", "1", "--lon", "1", "--venues", "-1"]))
+        finally:
+            wolt._get = original
+        self.assertEqual(negative["checked_venues"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()
