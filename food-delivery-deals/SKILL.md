@@ -1,12 +1,12 @@
 ---
 name: food-delivery-deals
-version: 2.2.0
-description: Use when finding food or grocery deals on delivery apps (Wolt, Uber Eats, Glovo, Bolt Food, foodora, foodpanda, efood, Just Eat, Lieferando, Pyszne.pl, Deliveroo) in a city. Finds real restaurant discounts and their conditions, menu prices, the cheapest grocery basket, and the same order compared across apps, read-only and without an account.
+version: 2.3.0
+description: Use when finding food or grocery deals on delivery apps (Wolt, Uber Eats, Glovo, Bolt Food, foodora, foodpanda, efood, Just Eat, Lieferando, Pyszne.pl, Deliveroo, Grab) in a city. Finds real restaurant discounts and their conditions, menu prices, the cheapest grocery basket, and the same order compared across apps, read-only and without an account.
 author: "Stas Kulesh from Sliday"
 license: MIT
 metadata:
   hermes:
-    tags: [food, delivery, deals, discounts, groceries, wolt, uber-eats, glovo, bolt-food, foodora, deliveroo, just-eat]
+    tags: [food, delivery, deals, discounts, groceries, wolt, uber-eats, glovo, bolt-food, foodora, deliveroo, just-eat, grab]
     related_skills: [consumer-billing-refunds]
 triggers:
   - "wolt deals"
@@ -18,6 +18,7 @@ triggers:
   - "glovo promo"
   - "bolt food offer"
   - "cheapest grocery basket"
+  - "grabfood promo"
   - "cheapest store on wolt"
   - "is this delivery deal real"
 mutating: false
@@ -47,9 +48,11 @@ Find the deals a person can actually use on food delivery apps, and price the re
 | efood | Greece | listing with offers, curl | needs login | delivery cost, min order | [delivery-hero.md](references/delivery-hero.md) |
 | Just Eat Takeaway (Just Eat, Lieferando, Thuisbezorgd, Pyszne.pl) | UK, DE, AT, NL, PL, ES and more | discovery API by postcode, curl and WebFetch | blocked; user's browser | delivery fee bands, min order | [just-eat-takeaway.md](references/just-eat-takeaway.md) |
 | Deliveroo | UK, IE, FR, BE, IT, UAE, KW, QA, SG | page JSON, curl | page JSON, curl | delivery fee, min order | [deliveroo.md](references/deliveroo.md) |
+| Grab (GrabFood, GrabMart) | SG, MY, ID, TH, VN, PH, KH, MM | user's browser only (guest API needs a bot-check token) | MY chain pages: chain-wide prices | none | [grab.md](references/grab.md) |
 | Foody (CY), DoorDash, Box (GR) | | blocked or partial | user's browser | | [deliveroo.md](references/deliveroo.md) (Other platforms), [delivery-hero.md](references/delivery-hero.md) |
+| GoFood (ID), ShopeeFood (VN, ID), LINE MAN (TH) | | blocked or app-only | user's browser | | [grab.md](references/grab.md) (Other platforms) |
 
-Read only the files for the platforms you use.
+Read only the files for the platforms you use. In Southeast Asia, the foodpanda listing works with curl (SG and MY verified), and Deliveroo SG uses the same pages as the UK (not tested). Use those for data, and read Grab in the user's browser.
 
 ## How to fetch
 1. **curl plus a small parser first.** Most responses are 0.3 to 14 MB. Save the response to a file and extract fields with a script, so prices come out exact. For Wolt, use `scripts/wolt.py`. `deals --lat --lon` answers "best Wolt deals near X" in one run: it opens the best-rated venues with their own offers, drops new-user and city-wide promos, and ranks the rest by size. `cities`, `venues`, `discounts` and `items` go deeper; add `--json` for raw data. For Just Eat Takeaway, `scripts/jet.py venues CC POSTCODE --deals --basket 60` reads deals and the real delivery fee band for that basket. For efood, `scripts/efood.py venues --lat --lon --offers --save FILE` downloads the 14 MB list once; reuse it with `--from-file FILE`.
