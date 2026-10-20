@@ -3,11 +3,12 @@
 
 Examples:
   python3 wolt.py cities larnaca
-  python3 wolt.py venues --lat 34.9167 --lon 33.6333 --discounted
+  python3 wolt.py deals --lat 34.9167 --lon 33.6333
+  python3 wolt.py venues --lat 34.9167 --lon 33.6333 --discounted --open-only --sort rating
   python3 wolt.py venues --lat 52.2297 --lon 21.0122 --retail --limit 20
   python3 wolt.py discounts burger-king-phinikoudes --lat 34.9167 --lon 33.6333
-  python3 wolt.py items burger-king-phinikoudes --query meal
-  python3 wolt.py items auchan-pokorna --category yellow-and-processed-cheeses-37 --json
+  python3 wolt.py items burger-king-phinikoudes --query meal --sort price
+  python3 wolt.py items auchan-pokorna --category yellow-and-processed-cheeses-37 --sort unit --json
 
 Wolt's consumer API is public but unofficial. It needs no account. Requests
 are sequential with a 1 s gap. Every money field is in minor units (cents).
@@ -41,11 +42,17 @@ HEADERS = {
 OPEN_ENDED_YEAR = "2050"
 PLATFORM_WIDE_SHARE = 0.25
 MAX_PAGES = 10
+MAX_DEAL_VENUES = 20
 _LAST_REQUEST = 0.0
+# Wolt puts narrow no-break spaces inside amounts ("15 PLN") and some offer text carries direction marks.
+_TEXT_FIXES = str.maketrans({"\u00a0": " ", "\u202f": " ", "\u2009": " ", "\u200b": None, "\u200e": None,
+                             "\u200f": None, "\u202a": None, "\u202b": None, "\u202c": None})
 
 
 class WoltError(RuntimeError):
-    pass
+    def __init__(self, message: str, status: int | None = None) -> None:
+        super().__init__(message)
+        self.status = status
 
 
 def _get(url: str) -> Any:
@@ -65,7 +72,7 @@ def _get(url: str) -> Any:
             hint = "Wolt refused the request: stop calling Wolt for this task and use the user's browser or the app."
         else:
             hint = "Check the URL and parameters."
-        raise WoltError(f"HTTP {exc.code} for {url}. {hint}") from exc
+        raise WoltError(f"HTTP {exc.code} for {url}. {hint}", exc.code) from exc
     except urllib.error.URLError as exc:
         raise WoltError(f"network error for {url}: {exc.reason}. If this sandbox has no direct network, "
                         "open the same URL with WebFetch.") from exc
@@ -76,6 +83,10 @@ def _get(url: str) -> Any:
 def coord(text: str) -> float:
     """Round to 3 decimals (about 100 m) so the user's exact address never leaves the machine."""
     return round(float(text), 3)
+
+
+def clean_text(text: str | None) -> str | None:
+    return text.translate(_TEXT_FIXES).strip() if text else text
 
 
 def fmt_money(minor: int | None, currency: str | None) -> str:
@@ -120,7 +131,7 @@ def _venue_promos(venue: dict[str, Any]) -> list[dict[str, Any]]:
     seen: dict[str, dict[str, Any]] = {}
     for promo in (venue.get("promotions_for_telemetry") or []) + (venue.get("promotions") or []):
         key = promo.get("campaign_id") or promo.get("text")
-        text = promo.get("text") or ""
+        text = clean_text(promo.get("text")) or ""
         seen.setdefault(key, {"campaign_id": promo.get("campaign_id"), "text": text, "first_order": "first order" in text.lower()})
     return list(seen.values())
 
@@ -151,6 +162,21 @@ def parse_venues(page: dict[str, Any]) -> list[dict[str, Any]]:
     return venues
 
 
+def _eta_minutes(eta: str | None) -> float:
+    match = re.match(r"\s*(\d+)", eta or "")
+    return int(match.group(1)) if match else float("inf")
+
+
+def sort_venues(venues: list[dict[str, Any]], key: str | None) -> list[dict[str, Any]]:
+    if key == "rating":
+        return sorted(venues, key=lambda v: -(v["rating"] or 0))
+    if key == "eta":
+        return sorted(venues, key=lambda v: _eta_minutes(v["eta"]))
+    if key == "fee":
+        return sorted(venues, key=lambda v: float("inf") if v["delivery_fee"] is None else v["delivery_fee"])
+    return venues
+
+
 def _amount_text(effect: dict[str, Any], currency: str | None) -> str:
     if effect.get("fraction") is not None:
         text = f"-{Decimal(str(effect['fraction'])) * 100:.0f}%"
@@ -168,10 +194,10 @@ def describe_discount(campaign: dict[str, Any], items: dict[str, dict[str, Any]]
     effects = campaign.get("effects") or {}
     conditions = campaign.get("conditions") or {}
     description = campaign.get("description") or {}
-    points = description.get("points") or []
+    points = [clean_text(p) for p in description.get("points") or []]
     out: dict[str, Any] = {
         "id": campaign.get("id"),
-        "title": description.get("title"),
+        "title": clean_text(description.get("title")),
         "kind": None,
         "value": None,
         "items": [],
@@ -179,7 +205,7 @@ def describe_discount(campaign: dict[str, Any], items: dict[str, dict[str, Any]]
         "conditions": [],
         "new_users_only": any(
             marker in text.lower()
-            for text in [description.get("title") or "", *points]
+            for text in [description.get("title") or "", *(p or "" for p in points)]
             for marker in ("new user", "first order")
         ),
         "valid_until": None,
@@ -224,7 +250,7 @@ def describe_discount(campaign: dict[str, Any], items: dict[str, dict[str, Any]]
         out["conditions"].append("Wolt+ members only")
     if conditions.get("weekly_time_restrictions"):
         out["conditions"].append(f"time window: {json.dumps(conditions['weekly_time_restrictions'])}")
-    if campaign.get("tap_to_apply") or any("select at checkout" in p.lower() for p in points):
+    if campaign.get("tap_to_apply") or any("select at checkout" in (p or "").lower() for p in points):
         out["conditions"].append("select at checkout")
     if out["new_users_only"]:
         out["conditions"].append("new users only")
@@ -232,7 +258,27 @@ def describe_discount(campaign: dict[str, Any], items: dict[str, dict[str, Any]]
     if end:
         out["valid_until"] = "open-ended" if end.startswith(OPEN_ENDED_YEAR) else end[:10]
     out["title_mismatch"] = _title_mismatch(out)
+    out["best_pct"] = _best_pct(effects, out)
     return out
+
+
+def _best_pct(effects: dict[str, Any], discount: dict[str, Any]) -> float | None:
+    """Largest share of the price the offer can take off, used to rank deals. None when the data can't tell."""
+    for key in ("basket_discount", "item_discount"):
+        effect = effects.get(key)
+        if not effect:
+            continue
+        if effect.get("fraction") is not None:
+            pct = effect["fraction"] * 100
+            if effect.get("max_amount") and discount["min_order"]:
+                pct = min(pct, 100 * effect["max_amount"] / discount["min_order"])  # the cap bites at the minimum order
+            return round(pct, 1)
+        if key == "basket_discount" and (effect.get("amount") or 0) > 1 and discount["min_order"]:
+            return round(100 * effect["amount"] / discount["min_order"], 1)
+        shares = [100 * (r["price"] - r["after"]) / r["price"]
+                  for r in discount["items"] if r.get("price") and r.get("after") is not None]
+        return round(max(shares), 1) if shares else None
+    return None
 
 
 def _title_mismatch(discount: dict[str, Any]) -> bool:
@@ -273,7 +319,7 @@ def parse_items(data: dict[str, Any]) -> list[dict[str, Any]]:
         unit = item.get("unit_price") or {}
         rows.append({
             "id": item.get("id"),
-            "name": item.get("name"),
+            "name": clean_text(item.get("name")),
             "price": item.get("price"),
             "original_price": item.get("original_price"),
             "unit_price": unit.get("price"),
@@ -292,6 +338,19 @@ def filter_items(rows: list[dict[str, Any]], query: str | None, discounted: bool
         if (not needle or needle in (r["name"] or "").lower())
         and (not discounted or (r["original_price"] and r["original_price"] > (r["price"] or 0)))
     ]
+
+
+def sort_items(rows: list[dict[str, Any]], key: str | None) -> list[dict[str, Any]]:
+    def missing_last(value: int | None) -> float:
+        return float("inf") if value is None else value
+
+    if key == "price":
+        return sorted(rows, key=lambda r: missing_last(r["price"]))
+    if key == "unit":
+        return sorted(rows, key=lambda r: missing_last(r["unit_price"]))
+    if key == "saving":
+        return sorted(rows, key=lambda r: -max(0, (r["original_price"] or 0) - (r["price"] or 0)))
+    return rows
 
 
 def next_page_token(data: dict[str, Any]) -> str | None:
@@ -316,28 +375,67 @@ def cmd_venues(args: argparse.Namespace) -> dict[str, Any]:
     page = "retail" if args.retail else "restaurants"
     venues = parse_venues(_get(f"{API}/v1/pages/{page}?lat={args.lat}&lon={args.lon}"))
     if args.discounted:
-        venues = [v for v in venues if any(not p["platform_wide"] and not p["first_order"] for p in v["promotions"])]
-    return {"venues": venues[: args.limit]}
+        venues = [v for v in venues if has_own_offer(v)]
+    if args.open_only:
+        venues = [v for v in venues if v["online"]]
+    if args.min_rating is not None:
+        venues = [v for v in venues if (v["rating"] or 0) >= args.min_rating]
+    return {"venues": sort_venues(venues, args.sort)[: args.limit]}
 
 
-def cmd_discounts(args: argparse.Namespace) -> dict[str, Any]:
+def has_own_offer(venue: dict[str, Any]) -> bool:
+    return any(not p["platform_wide"] and not p["first_order"] for p in venue["promotions"])
+
+
+def fetch_discounts(slug: str, lat: float, lon: float, currency: str | None, include_new_users: bool) -> dict[str, Any]:
     dynamic = _get(
-        f"{API}/order-xp/web/v1/venue/slug/{urllib.parse.quote(args.slug)}/dynamic/"
-        f"?lat={args.lat}&lon={args.lon}&selected_delivery_method=homedelivery"
+        f"{API}/order-xp/web/v1/venue/slug/{urllib.parse.quote(slug)}/dynamic/"
+        f"?lat={lat}&lon={lon}&selected_delivery_method=homedelivery"
     )
     fees = parse_fees(dynamic)
-    currency = args.currency or detect_currency(fees["shown_delivery_fee"]) or detect_currency(fees["shown_order_minimum"])
+    currency = currency or detect_currency(fees["shown_delivery_fee"]) or detect_currency(fees["shown_order_minimum"])
     campaigns = (dynamic.get("venue_raw") or {}).get("discounts") or []
     items: dict[str, dict[str, Any]] = {}
     if any((c.get("effects") or {}).get("item_discount") for c in campaigns):
-        assortment = _get(_assortment_url(args.slug))
+        assortment = _get(_assortment_url(slug))
         items = {i["id"]: i for i in assortment.get("items") or []}
     discounts = [describe_discount(c, items, currency) for c in campaigns]
     hidden = 0
-    if not args.all:
+    if not include_new_users:
         hidden = sum(1 for d in discounts if d["new_users_only"])
         discounts = [d for d in discounts if not d["new_users_only"]]
-    return {"slug": args.slug, "currency": currency, "fees": fees, "discounts": discounts, "hidden_new_user_offers": hidden}
+    return {"slug": slug, "currency": currency, "fees": fees, "discounts": discounts, "hidden_new_user_offers": hidden}
+
+
+def cmd_discounts(args: argparse.Namespace) -> dict[str, Any]:
+    return fetch_discounts(args.slug, args.lat, args.lon, args.currency, args.all)
+
+
+def rank_deals(deals: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(deals, key=lambda d: (d["best_pct"] is None, -(d["best_pct"] or 0), -(d["rating"] or 0)))
+
+
+def cmd_deals(args: argparse.Namespace) -> dict[str, Any]:
+    page = "retail" if args.retail else "restaurants"
+    venues = parse_venues(_get(f"{API}/v1/pages/{page}?lat={args.lat}&lon={args.lon}"))
+    wide = {p["campaign_id"] for v in venues for p in v["promotions"] if p["platform_wide"] and p["campaign_id"]}
+    candidates = sort_venues([v for v in venues if v["online"] and has_own_offer(v)], "rating")
+    candidates = candidates[: max(1, min(args.venues, MAX_DEAL_VENUES))]
+    deals, skipped = [], []
+    for venue in candidates:
+        try:
+            found = fetch_discounts(venue["slug"], args.lat, args.lon, venue["currency"], args.all)
+        except WoltError as exc:
+            skipped.append({"slug": venue["slug"], "error": str(exc)})
+            if exc.status in (403, 429):
+                break  # Wolt refused us: stop for this task, don't keep knocking
+            continue
+        for d in found["discounts"]:
+            if not args.all and (d["id"] or "").split(":")[-1] in wide:
+                continue
+            deals.append({"venue": venue["name"], "slug": venue["slug"], "rating": venue["rating"], "eta": venue["eta"],
+                          "currency": venue["currency"], "fees": found["fees"], **d})
+    return {"checked_venues": len(candidates), "deals": rank_deals(deals)[: args.limit], "skipped": skipped}
 
 
 def cmd_items(args: argparse.Namespace) -> dict[str, Any]:
@@ -359,7 +457,8 @@ def cmd_items(args: argparse.Namespace) -> dict[str, Any]:
             token = next_page_token(data)
             if not token:
                 break
-    result = {"slug": args.slug, "currency": args.currency, "items": filter_items(rows, args.query, args.discounted)}
+    items = sort_items(filter_items(rows, args.query, args.discounted), args.sort)
+    result = {"slug": args.slug, "currency": args.currency, "items": items}
     if args.category and token:
         result["note"] = f"truncated after {MAX_PAGES} pages; results are incomplete"
     return result
@@ -401,6 +500,25 @@ def _print_human(command: str, result: dict[str, Any]) -> None:
                 print("    note: title and computed discount disagree; ask the user to check the price in the app")
         if result["hidden_new_user_offers"]:
             print(f"({result['hidden_new_user_offers']} new-user offers hidden; pass --all to show them)")
+    elif command == "deals":
+        for d in result["deals"]:
+            cur = d["currency"]
+            size = f"-{d['best_pct']:g}%" if d["best_pct"] is not None else d["value"]
+            priced = sorted((r for r in d["items"] if r["name"] and r.get("after") is not None),
+                            key=lambda r: r["after"] - r["price"])
+            example = ""
+            if priced:
+                top = priced[0]
+                more = f" (+{len(priced) - 1} more)" if len(priced) > 1 else ""
+                example = f" | e.g. {top['name']}: {fmt_money(top['price'], cur)} -> {fmt_money(top['after'], cur)}{more}"
+            extra = f", min order {fmt_money(d['min_order'], cur)}" if d["min_order"] else ""
+            conds = f" [{'; '.join(d['conditions'])}]" if d["conditions"] else ""
+            until = d["valid_until"] if d["valid_until"] == "open-ended" else f"until {d['valid_until'] or '?'}"
+            print(f"{size} | {d['venue']} ({d['rating'] or '-'}, {d['eta'] or '-'} min) | {d['title']}{extra}{example} | {until}{conds}")
+        print(f"(checked the {result['checked_venues']} best-rated open venues with their own offers; "
+              "platform-wide and new-user offers left out)")
+        for s in result["skipped"]:
+            print(f"skipped {s['slug']}: {s['error']}")
     elif command == "items":
         if "categories" in result:
             print(result["note"])
@@ -427,7 +545,18 @@ def build_parser() -> argparse.ArgumentParser:
     venues.add_argument("--lon", type=coord, required=True)
     venues.add_argument("--retail", action="store_true", help="shops and groceries instead of restaurants")
     venues.add_argument("--discounted", action="store_true", help="only venues with an offer that is not platform-wide")
+    venues.add_argument("--open-only", action="store_true", help="skip venues that are offline now")
+    venues.add_argument("--min-rating", type=float, help="skip venues rated below this score (0-10)")
+    venues.add_argument("--sort", choices=["rating", "eta", "fee"], help="rating high to low, eta or guest fee low to high")
     venues.add_argument("--limit", type=int, default=50)
+    deals = sub.add_parser("deals", parents=[common], help="best venue-specific offers near a point, ranked by size")
+    deals.add_argument("--lat", type=coord, required=True)
+    deals.add_argument("--lon", type=coord, required=True)
+    deals.add_argument("--retail", action="store_true", help="shops and groceries instead of restaurants")
+    deals.add_argument("--venues", type=int, default=8, help=f"how many venues to open (max {MAX_DEAL_VENUES}, ~2 requests each)")
+    deals.add_argument("--all", action="store_true",
+                       help="also list new-user and platform-wide offers at the venues checked (venue choice is unchanged)")
+    deals.add_argument("--limit", type=int, default=20, help="how many deals to print")
     discounts = sub.add_parser("discounts", parents=[common], help="a venue's campaigns and fees")
     discounts.add_argument("slug")
     discounts.add_argument("--lat", type=coord, required=True)
@@ -439,13 +568,15 @@ def build_parser() -> argparse.ArgumentParser:
     items.add_argument("--category", help="category slug, e.g. sliced-cheese-85")
     items.add_argument("--query", help="case-insensitive name filter")
     items.add_argument("--discounted", action="store_true", help="only items with original_price above price")
+    items.add_argument("--sort", choices=["price", "unit", "saving"], help="price or unit price low to high, or biggest saving first")
     items.add_argument("--currency")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    handler = {"cities": cmd_cities, "venues": cmd_venues, "discounts": cmd_discounts, "items": cmd_items}[args.command]
+    handler = {"cities": cmd_cities, "venues": cmd_venues, "deals": cmd_deals, "discounts": cmd_discounts,
+               "items": cmd_items}[args.command]
     try:
         result = handler(args)
     except WoltError as exc:

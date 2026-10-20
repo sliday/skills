@@ -8,7 +8,7 @@ Practical, evidence-first skills for agents working on real decisions, not gener
 
 | Skill | What it does |
 |---|---|
-| [`food-delivery-deals`](./food-delivery-deals/SKILL.md) | Finds usable deals on Wolt, Uber Eats, Glovo, Bolt Food, foodora/foodpanda/efood, Just Eat Takeaway and Deliveroo, prices the real order with fees, and compares apps and grocery baskets. Read-only, no account. Live-tested endpoint maps per platform, plus a stdlib `wolt.py` CLI. |
+| [`food-delivery-deals`](./food-delivery-deals/SKILL.md) | Finds usable deals on Wolt, Uber Eats, Glovo, Bolt Food, foodora/foodpanda/efood, Just Eat Takeaway and Deliveroo, prices the real order with fees, and compares apps and grocery baskets. Read-only, no account. Live-tested endpoint maps per platform, a stdlib `wolt.py` CLI (`deals` ranks the best offers near a point in one run), and `check_endpoints.py` to catch API drift. |
 | [`visual-explanation`](./visual-explanation/SKILL.md) | Chooses the clearest teaching medium, then builds and verifies practical HTML explainers, diagrams, or narrated videos. Production toolkit, not an always-active instruction layer. |
 | [`prototyper`](./prototyper/SKILL.md) | Defines and builds usable prototypes with local discovery, nested client progress cards, feedback, acceptance checks and a team handoff. |
 | [`anonymizer`](./anonymizer/SKILL.md) | Redacts personal details locally from text and images with OpenAI Privacy Filter, opaque image masks, and optional consent-gated GPT Image 2.5 finishing. |
