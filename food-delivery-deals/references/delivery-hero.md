@@ -1,5 +1,5 @@
 # Delivery Hero (foodora, foodpanda, efood, Foody, talabat)
-Markets: foodora in Austria (foodora.at), Czechia (foodora.cz), Hungary (foodora.hu), Sweden and Norway (not tested). foodpanda in Asia (tested Singapore). efood in Greece. Foody in Cyprus. talabat in the Middle East (not tested). Glovo is also Delivery Hero but has its own file.
+Markets: foodora in Austria (foodora.at), Czechia (foodora.cz), Hungary (foodora.hu), Sweden and Norway (not tested). foodpanda in Asia (tested Singapore; Malaysia listing verified 2026-10-20, 3,496 venues near Kuala Lumpur). efood in Greece. Foody in Cyprus. talabat in the Middle East (not tested). Glovo is also Delivery Hero but has its own file.
 Access (tested 2026-10-20): foodora/foodpanda venue lists work with curl only (one required header). Venue detail and menus worked once, then PerimeterX blocked them. efood venue lists work with curl; efood menus need a login. Foody is blocked. WebFetch got 403 on every host.
 
 ## Find venues

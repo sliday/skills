@@ -10,6 +10,7 @@ should_trigger:
   - what deliveroo offers are on near soho?
   - foodora rabatt wien heute, lohnt sich das?
   - the app says free delivery, is it actually free?
+  - any grabfood promos in kuala lumpur tonight?
 should_not_trigger:
   - refund my wolt order, the food never came        # consumer-billing-refunds
   - build a food delivery app in react with a cart
