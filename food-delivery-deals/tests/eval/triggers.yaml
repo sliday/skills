@@ -1,0 +1,21 @@
+# Prompts for the trigger check. Run each in a fresh session with the skill installed.
+should_trigger:
+  - any good wolt deals in larnaca tonight?
+  - which is cheaper for pizza right now, glovo or uber eats?
+  - is the bolt food 2 for 1 offer real or a trap?
+  - cheapest grocery basket on wolt in warsaw, I'll send the list
+  - find me promotions on pyszne.pl near Mokotów
+  - compare lieferando and wolt for sushi in berlin
+  - efood offers near Syntagma tonight
+  - what deliveroo offers are on near soho?
+  - foodora rabatt wien heute, lohnt sich das?
+  - the app says free delivery, is it actually free?
+should_not_trigger:
+  - refund my wolt order, the food never came        # consumer-billing-refunds
+  - build a food delivery app in react with a cart
+  - write a scraper that collects every wolt restaurant in europe
+  - best sit-down restaurants in larnaca for a date
+  - how much is an uber ride to the airport?
+  - recipe for a salmon poke bowl
+  - find a hotel in riga with blackout curtains       # hotel-hunting
+  - explain how wolt's delivery fee algorithm works in general

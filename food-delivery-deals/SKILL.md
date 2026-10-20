@@ -1,6 +1,6 @@
 ---
 name: food-delivery-deals
-version: 2.1.0
+version: 2.2.0
 description: Use when finding food or grocery deals on delivery apps (Wolt, Uber Eats, Glovo, Bolt Food, foodora, foodpanda, efood, Just Eat, Lieferando, Pyszne.pl, Deliveroo) in a city. Finds real restaurant discounts and their conditions, menu prices, the cheapest grocery basket, and the same order compared across apps, read-only and without an account.
 author: "Stas Kulesh from Sliday"
 license: MIT
@@ -52,7 +52,7 @@ Find the deals a person can actually use on food delivery apps, and price the re
 Read only the files for the platforms you use.
 
 ## How to fetch
-1. **curl plus a small parser first.** Most responses are 0.3 to 14 MB. Save the response to a file and extract fields with a script, so prices come out exact. For Wolt, use `scripts/wolt.py`. `deals --lat --lon` answers "best Wolt deals near X" in one run: it opens the best-rated venues with their own offers, drops new-user and city-wide promos, and ranks the rest by size. `cities`, `venues`, `discounts` and `items` go deeper; add `--json` for raw data.
+1. **curl plus a small parser first.** Most responses are 0.3 to 14 MB. Save the response to a file and extract fields with a script, so prices come out exact. For Wolt, use `scripts/wolt.py`. `deals --lat --lon` answers "best Wolt deals near X" in one run: it opens the best-rated venues with their own offers, drops new-user and city-wide promos, and ranks the rest by size. `cities`, `venues`, `discounts` and `items` go deeper; add `--json` for raw data. For Just Eat Takeaway, `scripts/jet.py venues CC POSTCODE --deals --basket 60` reads deals and the real delivery fee band for that basket. For efood, `scripts/efood.py venues --lat --lon --offers --save FILE` downloads the 14 MB list once; reuse it with `--from-file FILE`.
 2. **WebFetch when your sandbox has no curl or no direct network.** It is not a way around a server that refused you. It works for Wolt, Glovo pages, Bolt Food, Just Eat discovery, and Deliveroo menus (names and prices only). WebFetch can't send headers or POST. A small model reads the page for you, so ask for exact fields, use `offset` for long pages, and check any number you put in a total.
 3. **The user's own browser** (claude-in-chrome) for blocked menus, read-only. Otherwise, tell the user what to check in the app.
 
@@ -99,3 +99,5 @@ Strip non-breaking spaces and invisible Unicode marks from offer text before you
 - List what you assumed (quantities, which brand counts as a match, new user or not, memberships).
 - List what you could not check: hidden fees, blocked platforms, membership prices.
 - Give the date and time. Offers change during the day.
+
+[references/example-report.md](references/example-report.md) shows a real report in this shape. `tests/eval/` holds the release eval: test briefs, a judge rubric and trigger prompts.

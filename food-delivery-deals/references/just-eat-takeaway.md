@@ -2,6 +2,14 @@
 Markets: UK, IE, ES, IT, DK (Just Eat); DE, AT (Lieferando); NL (Thuisbezorgd); PL (Pyszne.pl); BE, LU, BG (Takeaway.com); IL (10bis).
 Access (tested 2026-10-20): the discovery JSON API works with curl and WebFetch, without login. Menus are not available: every brand website returns a Cloudflare 403 to curl and to WebFetch. Use the user's browser for menus and prices.
 
+## Script first
+`scripts/jet.py` (stdlib, GET only, 1 s between requests) picks the right host, reads deals, marks paid placements `[ad]`, and works out the delivery fee from the bands, never from `deliveryCost`.
+```
+python3 scripts/jet.py venues pl 00-024 --deals --open-only --basket 60 --sort fee
+python3 scripts/jet.py venues uk 'EC4M 7RF' --free-delivery --json
+```
+`--basket` is in major units (60 = 60.00). Without it, the fee shows as a range across bands.
+
 ## Find venues
 Continental brands (verified 2026-10-20 for `de`, `pl`, `nl` with curl; `pl` also with WebFetch):
 ```
